@@ -163,15 +163,64 @@ historyRouter.get('/', (req, res) => {
 
 historyRouter.patch('/', (req, res) => {
   const {
-    body: {
-        id,
-        vehicleId,
-        userId,
-        rentalDate,
-        returnDate,
-        returnStatus,
-        unit,
-    },
+    body: {id, vehicleId, userId, rentalDate, returnDate, returnStatus, unit},
   } = req;
 });
+
+historyRouter.delete(
+  '/',
+  (req, res, next) => {
+    const {
+      body: {id},
+    } = req;
+    const sqlQuery = 'SELECT * FROM history WHERE id = ?';
+    db.query(sqlQuery, [id], (err, result) => {
+      if (err)
+        return res.status(500).json({
+          msg: 'Something went wrong',
+          err,
+        });
+      if (result.length === 0)
+        return res.status(404).json({
+          msg: 'Id cannot be found',
+        });
+      req.body = result[0];
+      console.log(req.body);
+      next();
+    });
+  },
+  (req, res) => {
+    const {
+      body: {
+        id,
+        vehicle_id,
+        user_id,
+        rental_date,
+        return_date,
+        return_status,
+        unit,
+        total_payment,
+      },
+    } = req;
+    const sqlQuery = 'DELETE FROM history WHERE id = ?';
+    db.query(sqlQuery, [id], (err, result) => {
+      if (err)
+        return res.status(500).json({
+          msg: 'Something went wrong',
+          err,
+        });
+      return res.status(200).json({
+        msg: 'History deleted',
+        id,
+        vehicle_id,
+        user_id,
+        rental_date: grabLocalYMD(rental_date),
+        return_date: grabLocalYMD(return_date),
+        return_status,
+        unit,
+        total_payment,
+      });
+    });
+  }
+);
 module.exports = historyRouter;
