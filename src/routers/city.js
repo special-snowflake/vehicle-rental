@@ -2,17 +2,17 @@
 const express = require('express');
 const mysql = require('mysql');
 
-const categoryRouter = express.Router();
+const cityRouter = express.Router();
 const db = require('../config/db');
 
-categoryRouter.post(
+cityRouter.post(
   '/',
   (req, res, next) => {
     const {
-      body: {category},
+      body: {city},
     } = req;
-    const sqlQuery = `SELECT * FROM category WHERE category = ?`;
-    db.query(sqlQuery, [category], (err, result) => {
+    const sqlQuery = `SELECT * FROM city WHERE city = ?`;
+    db.query(sqlQuery, [city], (err, result) => {
       if (err)
         return res.status(500).json({
           msg: 'Something went wrong',
@@ -20,7 +20,7 @@ categoryRouter.post(
         });
       if (result === 0) {
         return res.status(409).json({
-          msg: 'Same category already exist.',
+          msg: 'Same city already exist.',
         });
       } else {
         next();
@@ -29,29 +29,29 @@ categoryRouter.post(
   },
   (req, res) => {
     const {
-      body: {category},
+      body: {city},
     } = req;
-    const sqlQuery = `INSERT INTO category (category) VALUES (?)`;
-    db.query(sqlQuery, [category], (err, result) => {
+    const sqlQuery = `INSERT INTO city (city) VALUES (?)`;
+    db.query(sqlQuery, [city], (err, result) => {
       if (err)
         return res.status(500).json({
-          msg: 'Something went wrong while submitting category.',
+          msg: 'Something went wrong while submitting city.',
           err,
         });
       return res.status(200).json({
-        msg: 'New Category Added',
+        msg: 'New city Added',
         id: result.insertId,
-        category,
+        city,
       });
     });
   }
 );
 
-categoryRouter.get('/', (req, res) => {
+cityRouter.get('/', (req, res) => {
   const {query} = req;
   console.log(query.filter);
   const filter = query.filter == undefined ? '' : query.filter;
-  const sqlQuery = `SELECT * FROM category ORDER BY category ?`;
+  const sqlQuery = `SELECT * FROM city ORDER BY city ?`;
   console.log(filter);
   db.query(sqlQuery, [mysql.raw(filter)], (err, result) => {
     if (err)
@@ -61,19 +61,20 @@ categoryRouter.get('/', (req, res) => {
       });
     if (result.length == 0) {
       return res.status(204).json({
-        msg: 'Category is empty',
+        msg: 'city is empty',
       });
     }
     return res.status(200).json({
-      msg: 'Category',
+      msg: 'city',
       result,
     });
   });
 });
 
-categoryRouter.patch('/', (req, res) => {
-  const sqlQuery = `UPDATE category SET category = ? where id = ?`;
-  const params = [req.body.category, req.body.id];
+cityRouter.patch('/', (req, res) => {
+  const sqlQuery = `UPDATE city SET city = ? where id = ?`;
+  const params = [req.body.city, req.body.id];
+  console.log(params);
   db.query(sqlQuery, params, (err, result) => {
     if (err)
       return res.status(500).json({
@@ -84,16 +85,17 @@ categoryRouter.patch('/', (req, res) => {
   });
 });
 
-categoryRouter.delete('/', (req, res) => {
-  const sqlQuery = `DELETE FROM category WHERE id = ?`;
+cityRouter.delete('/', (req, res) => {
+  const sqlQuery = `DELETE FROM city WHERE id = ?`;
   const param = [req.body.id];
+  console.log(param);
   db.query(sqlQuery, param, (err, result) => {
     if (err) return res.status(500).json({msg: 'Something went wrong', err});
     return res.status(200).json({
-      msg: 'Delete category success',
+      msg: 'Delete city success',
       id: req.body.id,
     });
   });
 });
 
-module.exports = categoryRouter;
+module.exports = cityRouter;
