@@ -1,7 +1,11 @@
 const express = require('express');
 const mysql = require('mysql');
 
-const {grabLocalYMD} = require('../helpers/collection');
+const {
+  grabLocalYMD,
+  checkingPatchWithData,
+  checkingPatchDate,
+} = require('../helpers/collection');
 
 const userRouter = express.Router();
 const db = require('../config/db');
@@ -125,5 +129,99 @@ userRouter.get('/:username', (req, res) => {
     return res.status(200).json(searchResult);
   });
 });
+
+userRouter.patch(
+  '/',
+  (req, res, next) => {
+    const {
+      body: {
+        id,
+        firstName,
+        lastName,
+        birthDate,
+        sex,
+        email,
+        phone,
+        address,
+        joinDate,
+      },
+    } = req;
+    const sqlQuery = `SELECT * FROM users WHERE id = ?`;
+    db.query(sqlQuery, [id], (err, result) => {
+      if (err)
+        return res.status(500).json({
+          msg: 'Something went wrong',
+          err,
+        });
+      if (result.length === 0)
+        return res.status(409).json({
+          msg: 'Id is unidentified.',
+        });
+      let bodyUpdate = [];
+      bodyUpdate[0] = result[0];
+      bodyUpdate[0] = checkingPatchWithData(
+        bodyUpdate,
+        'first_name',
+        firstName
+      );
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'last_name', lastName);
+      bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'birth_date', birthDate);
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'sex', sex);
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'email', email);
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'phone', phone);
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'address', address);
+      bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'join_date', joinDate);
+      console.log(bodyUpdate);
+      req.bodyUpdate = bodyUpdate[0];
+      next();
+    });
+  },
+  (req, res) => {
+    const {
+      bodyUpdate: {
+        id,
+        first_name,
+        last_name,
+        birth_date,
+        sex,
+        email,
+        phone,
+        address,
+        join_date,
+      },
+    } = req;
+    const params = [
+      first_name,
+      last_name,
+      birth_date,
+      sex,
+      email,
+      phone,
+      address,
+      join_date,
+      id,
+    ];
+    const sqlQuery = `UPDATE users SET 
+    first_name = ?,
+    last_name = ?,
+    birth_date = ?,
+    sex = ?,
+    email = ?,
+    phone = ?,
+    address = ?,
+    join_date = ?
+    WHERE id = ?;`;
+    db.query(sqlQuery, params, (err, result) => {
+      if(err) return res.status(500).json({
+        msg:'Something went wrong.',
+        err,
+      });
+      return res.status(200).json({
+        msg: 'Data successfully updated.',
+        newData: req.bodyUpdate,
+      })
+    });
+  }
+);
 
 module.exports = userRouter;

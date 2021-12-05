@@ -1,16 +1,18 @@
 const express = require('express');
 const router = express.Router();
 
-const testimonyRouter = require('./testimony');
 const homeRouter = require('./home');
 const userRouter = require('./user');
+const testimonyRouter = require('./testimony');
+const historyRouter = require('./history');
 const vehiclesRouter = require('./vehicles');
 const categoryRouter = require('./category');
 const cityRouter = require('./city');
 
-router.use('/testimony', testimonyRouter);
 router.use('/home', homeRouter);
 router.use('/user', userRouter);
+router.use('/testimony', testimonyRouter);
+router.use('/history', historyRouter);
 router.use('/vehicles', vehiclesRouter);
 router.use('/category', categoryRouter);
 router.use('/city', cityRouter);

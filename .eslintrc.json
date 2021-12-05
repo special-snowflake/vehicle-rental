@@ -5,7 +5,7 @@
         "node": true
     },
     "extends": [
-        "google"
+        "standard"
     ],
     "parserOptions": {
         "ecmaVersion": 6,

@@ -8,8 +8,9 @@ const db = require('../config/db');
 vehiclesRouter.get('/', (req, res, _next) => {
   const {query} = req;
   let keyword = '%%';
-  if (query.type) keyword = `%${query.type}%`;
-  const sqlQuery = `SELECT * FROM vehicles WHERE type LIKE ?`;
+  if (query.type) keyword = `%${query.category}%`;
+  const sqlQuery = `SELECT * FROM vehicles WHERE category_id in 
+  (SELECT id FROM category WHERE category LIKE "?" )`;
   db.query(sqlQuery, [mysql.raw(keyword)], (err, result) => {
     if (err) {
       return res.status(500).json({msg: 'Error Found', err, keyword});
@@ -27,7 +28,7 @@ vehiclesRouter.post(
     const {
       body: {category},
     } = req;
-    sqlQuery = `SELECT id FROM category WHERE category = ?`;
+    const sqlQuery = `SELECT id FROM category WHERE category_id = ?`;
     console.log(sqlQuery);
     db.query(sqlQuery, [category], (err, result) => {
       if (err) {
@@ -50,7 +51,7 @@ vehiclesRouter.post(
     const {
       body: {city},
     } = req;
-    sqlQuery = `SELECT id FROM city WHERE city = ?`;
+    const sqlQuery = `SELECT id FROM city WHERE city = ?`;
     db.query(sqlQuery, [city], (err, result) => {
       if (err) {
         return res.status(500).json({

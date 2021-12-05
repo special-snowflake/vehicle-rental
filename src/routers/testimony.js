@@ -50,7 +50,7 @@ testimonyRouter.post('/', (req, res, _next) => {
   });
 });
 
-testimonyRouter.get('/', (req, res, _next) => {
+testimonyRouter.get('/', (req, res) => {
   let order = '';
   if (req.query.orderBy) {
     const orderBy = req.query.orderBy;
@@ -69,9 +69,10 @@ testimonyRouter.get('/', (req, res, _next) => {
   const sqlQuery = `SELECT 
     testimony.id testiID,
     testimony.history_id historyID,
+    testimony.date_added, 
     testimony.rate,
     history.rental_date,
-    history.return_date, 
+    history.return_date,
     testimony.testimony 
     FROM testimony JOIN history ON testimony.history_id = history.id`;
   console.log(order, 'here');
@@ -87,9 +88,22 @@ testimonyRouter.get('/', (req, res, _next) => {
         mgs: 'Data cannot be found',
       });
     }
+    const testimonyResult = [];
+    result.forEach((_element, index) => {
+      testimonyResult[index] = result[index];
+      const rentalDate = grabLocalYMD(testimonyResult[index].rental_date);
+      const returnDate = grabLocalYMD(testimonyResult[index].return_date);
+      const dateAdded = grabLocalYMD(testimonyResult[index].date_added);
+      testimonyResult[index] = {
+        ...testimonyResult[index],
+        rental_date: rentalDate,
+        return_date: returnDate,
+        date_added: dateAdded,
+      }
+    });
     return res.status(200).json({
       msg: 'Testimony',
-      result,
+      testimonies: testimonyResult,
     });
   });
 });
