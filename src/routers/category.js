@@ -39,8 +39,9 @@ categoryRouter.post(
           err,
         });
       return res.status(200).json({
-        msg: 'Category Added',
-        result,
+        msg: 'New Category Added',
+        category,
+        id: result.insertId,
       });
     });
   }
@@ -48,7 +49,7 @@ categoryRouter.post(
 
 categoryRouter.get('/', (req, res) => {
   const {query} = req;
-  console.log(query.filter)
+  console.log(query.filter);
   const filter = query.filter == undefined ? '' : query.filter;
   const sqlQuery = `SELECT * FROM category ORDER BY category ?`;
   console.log(filter);
@@ -67,6 +68,19 @@ categoryRouter.get('/', (req, res) => {
       msg: 'Category',
       result,
     });
+  });
+});
+
+categoryRouter.patch('/', (req, res) => {
+  const sqlQuery = `UPDATE category SET category = ? where id = ?`;
+  const params = [req.body.category, req.body.id];
+  db.query(sqlQuery, params, (err, result) => {
+    if (err)
+      return res.status(500).json({
+        msg: 'Something when wrong',
+        err,
+      });
+    return res.status(200).json(result);
   });
 });
 

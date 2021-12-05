@@ -70,7 +70,18 @@ vehiclesRouter.post(
   },
   (req, res) => {
     const {
-      body: {brand, model, capacity, price, status, stock, cityID, categoryID},
+      body: {
+        brand,
+        model,
+        capacity,
+        price,
+        status,
+        stock,
+        cityID,
+        categoryID,
+        category,
+        city,
+      },
     } = req;
     const prepare = [
       categoryID,
@@ -93,7 +104,17 @@ vehiclesRouter.post(
           msg: 'Something went wrong',
           err,
         });
-      return res.status(200).json(result);
+      return res.status(200).json({
+        msg: 'New Item is Added to Vehicles',
+        category,
+        city,
+        brand,
+        model,
+        capacity,
+        price,
+        status,
+        stock,
+      });
     });
   }
 );
