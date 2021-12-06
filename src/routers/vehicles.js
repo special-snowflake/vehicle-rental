@@ -1,5 +1,4 @@
 const express = require('express');
-const mysql = require('mysql');
 
 const vehiclesRouter = express.Router();
 const db = require('../config/db');
