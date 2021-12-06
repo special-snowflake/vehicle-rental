@@ -1,24 +1,29 @@
-const db = require('../config/db');
+const cityModel = require('../models/city');
+const sendResponse = require('../helpers/sendResponse');
 
-const addCityVerification = (req, res, next) => {
+const cityAddVerification = (req, res, next) => {
   const {
     body: {city},
   } = req;
-  const sqlQuery = `SELECT * FROM city WHERE city = ?`;
-  db.query(sqlQuery, [city], (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Something went wrong',
-        err,
-      });
-    if (result !== 0) {
-      return res.status(409).json({
-        msg: 'Same city already exist.',
-      });
-    } else {
-      next();
-    }
-  });
+  cityModel
+    .modelcityAddVerivication(city)
+    .then(({status, result}) => {
+      console.log('here', status);
+      if (status == 409) {
+        console.log('bug 2');
+        return sendResponse.success(res, status, {
+          msg: 'Same city already exist.',
+        });
+      }
+      if (status == 200) {
+        console.log('bug' + result);
+        next();
+      }
+    })
+    .catch((err) => {
+      console.log('errrrorrr', err);
+      sendResponse.error(res, 500, err);
+    });
 };
 
-module.exports = addCityVerification;
+module.exports = cityAddVerification;

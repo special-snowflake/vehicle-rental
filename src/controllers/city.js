@@ -1,74 +1,77 @@
-const mysql = require('mysql');
-const db = require('../config/db');
+const cityModel = require('../models/city');
+const sendResponse = require('../helpers/sendResponse');
 
-const addNewCity = (req, res) => {
+const addcity = (req, res) => {
   const {
     body: {city},
   } = req;
-  const sqlQuery = `INSERT INTO city (city) VALUES (?)`;
-  db.query(sqlQuery, [city], (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Something went wrong while submitting city.',
-        err,
+  cityModel
+    .modelAddcity(city)
+    .then(({status, result}) => {
+      sendResponse.success(res, status, {
+        msg: 'New city Added',
+        id: result.insertId,
       });
-    return res.status(200).json({
-      msg: 'New city Added',
-      id: result.insertId,
-      city,
+    })
+    .catch((err) => {
+      sendResponse.error(res, 500, {msg: 'Something went wrong.', err});
     });
-  });
 };
 
-const getCity = (req, res) => {
+const getcity = (req, res) => {
   const {query} = req;
-  console.log(query.filter);
   const filter = query.filter == undefined ? '' : query.filter;
-  const sqlQuery = `SELECT * FROM city ORDER BY city ?`;
-  console.log(filter);
-  db.query(sqlQuery, [mysql.raw(filter)], (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Something went wrong',
-        err,
-      });
-    if (result.length == 0) {
-      return res.status(204).json({
-        msg: 'city is empty',
-      });
-    }
-    return res.status(200).json({
-      msg: 'city',
-      result,
-    });
-  });
+  cityModel
+    .modelGetcity(filter)
+    .then(({status, result}) => {
+      if (status == 204) {
+        sendResponse.success(res, status, {msg: 'City is empty'});
+      }
+      sendResponse.success(res, status, {msg: 'City', result});
+    })
+    .catch((err) =>
+      sendResponse.error(res, 500, {msg: 'Something went wrong', err})
+    );
 };
 
-const updateCity = (req, res) => {
-  const sqlQuery = `UPDATE city SET city = ? where id = ?`;
-  const params = [req.body.city, req.body.id];
-  console.log(params);
-  db.query(sqlQuery, params, (err, result) => {
-    if (err)
-      return res.status(500).json({
+const updatecity = (req, res) => {
+  cityModel
+    .modelUpdatecity(req.body.city, req.body.id)
+    .then(({status, result}) => {
+      if (status == 200) {
+        sendResponse.success(res, status, {
+          msg: 'Data successfully updated',
+          result,
+        });
+      }
+    })
+    .catch((err) => {
+      sendResponse.error(res, 500, {
         msg: 'Something when wrong',
         err,
       });
-    return res.status(200).json(result);
-  });
-};
-
-const deleteCity = (req, res) => {
-  const sqlQuery = `DELETE FROM city WHERE id = ?`;
-  const param = [req.body.id];
-  console.log(param);
-  db.query(sqlQuery, param, (err, result) => {
-    if (err) return res.status(500).json({msg: 'Something went wrong', err});
-    return res.status(200).json({
-      msg: 'Delete city success',
-      id: req.body.id,
     });
-  });
 };
 
-module.exports = {addNewCity, getCity, updateCity, deleteCity};
+const deletecity = (req, res) => {
+  const id = req.body.id;
+  cityModel
+    .modelDeletecity(id)
+    .then(({status, result}) => {
+      if (status == 209) {
+        return sendResponse.success(res, status, {msg: 'No data deleted'});
+      }
+      sendResponse.success(res, status, {
+        msg: 'Delete city success',
+        result,
+      });
+    })
+    .catch((err) => {
+      sendResponse.error(res, 500, {
+        msg: 'Something when wrong',
+        err,
+      });
+    });
+};
+
+module.exports = {addcity, updatecity, deletecity, getcity};

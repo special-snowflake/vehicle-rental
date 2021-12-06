@@ -1,18 +1,20 @@
 const express = require('express');
-const mysql = require('mysql');
+
+const cityController = require('../controllers/city');
+const cityAddVerification = require('../middlewares/city');
 
 const cityRouter = express.Router();
-const db = require('../config/db');
 
-const controllerCity = require('../controllers/city');
-const addCityVerification = require('../middlewares/city');
+cityRouter.post(
+  '/',
+  cityAddVerification,
+  cityController.addcity
+);
 
-cityRouter.post('/', addCityVerification, controllerCity.addNewCity);
+cityRouter.get('/', cityController.getcity);
 
-cityRouter.get('/', controllerCity.getCity);
+cityRouter.patch('/', cityController.updatecity);
 
-cityRouter.patch('/', controllerCity.updateCity);
-
-cityRouter.delete('/', controllerCity.deleteCity);
+cityRouter.delete('/', cityController.deletecity);
 
 module.exports = cityRouter;

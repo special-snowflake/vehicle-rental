@@ -1,25 +1,29 @@
-const db = require('../config/db');
+const categoryModel = require('../models/category');
+const sendResponse = require('../helpers/sendResponse');
 
 const categoryAddVerification = (req, res, next) => {
   const {
     body: {category},
   } = req;
-  console.log(category);
-  const sqlQuery = `SELECT * FROM category WHERE category = ?`;
-  db.query(sqlQuery, [category], (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Something went wrong',
-        err,
-      });
-    if (result !== 0) {
-      return res.status(409).json({
-        msg: 'Same category already exist.',
-      });
-    } else {
-      next();
-    }
-  });
+  categoryModel
+    .modelCategoryAddVerivication(category)
+    .then(({status, result}) => {
+      console.log('here', status);
+      if (status == 409) {
+        console.log('bug 2');
+        return sendResponse.success(res, status, {
+          msg: 'Same category already exist.',
+        });
+      }
+      if (status == 200) {
+        console.log('bug' + result);
+        next();
+      }
+    })
+    .catch((err) => {
+      console.log('errrrorrr', err);
+      sendResponse.error(res, 500, err);
+    });
 };
 
 module.exports = categoryAddVerification;

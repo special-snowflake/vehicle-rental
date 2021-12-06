@@ -5,11 +5,13 @@
         "node": true
     },
     "extends": [
-        "standard"
+        "google"
     ],
     "parserOptions": {
-        "ecmaVersion": 13
+        "ecmaVersion": 2015
     },
     "rules": {
+        "linebreak-style": 0,
+        "indent":"off"
     }
 }

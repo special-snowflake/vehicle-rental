@@ -1,72 +1,71 @@
-const mysql = require('mysql');
-const db = require('../config/db');
+const categoryModel = require('../models/category');
+const sendResponse = require('../helpers/sendResponse');
 
 const addCategory = (req, res) => {
   const {
     body: {category},
   } = req;
-  const sqlQuery = `INSERT INTO category (category) VALUES (?)`;
-  db.query(sqlQuery, [category], (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Something went wrong while submitting category.',
-        err,
-      });
-    return res.status(200).json({
-      msg: 'New Category Added',
-      id: result.insertId,
-      category,
+  categoryModel
+    .modelAddCategory(category)
+    .then(({status, result}) => {
+      sendResponse.success(res, status, {msg: 'New Category Added', result});
+    })
+    .catch((err) => {
+      sendResponse.error(res, 500, {msg: 'Something went wrong.', err});
     });
-  });
 };
 
 const getCategory = (req, res) => {
   const {query} = req;
-  console.log(query.filter);
   const filter = query.filter == undefined ? '' : query.filter;
-  const sqlQuery = `SELECT * FROM category ORDER BY category ?`;
-  console.log(filter);
-  db.query(sqlQuery, [mysql.raw(filter)], (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Something went wrong',
-        err,
-      });
-    if (result.length == 0) {
-      return res.status(204).json({
-        msg: 'Category is empty',
-      });
-    }
-    return res.status(200).json({
-      msg: 'Category',
-      result,
-    });
-  });
+  categoryModel
+    .modelGetCategory(filter)
+    .then(({status, result}) => {
+      if (status == 204) {
+        sendResponse.success(res, status, {msg: 'Category is empty'});
+      }
+      sendResponse.success(res, status, {msg: 'Category', result});
+    })
+    .catch((err) =>
+      sendResponse.error(res, 500, {msg: 'Something went wrong', err})
+    );
 };
 
 const updateCategory = (req, res) => {
-  const sqlQuery = `UPDATE category SET category = ? where id = ?`;
-  const params = [req.body.category, req.body.id];
-  db.query(sqlQuery, params, (err, result) => {
-    if (err)
-      return res.status(500).json({
+  categoryModel
+    .modelUpdateCategory(req.body.category, req.body.id)
+    .then(({status, result}) => {
+      if (status == 200) {
+        sendResponse.success(res, status, {
+          msg: 'Data successfully updated',
+          result,
+        });
+      }
+    })
+    .catch((err) => {
+      sendResponse.error(res, 500, {
         msg: 'Something when wrong',
         err,
       });
-    return res.status(200).json(result);
-  });
+    });
 };
 
 const deleteCategory = (req, res) => {
-  const sqlQuery = `DELETE FROM category WHERE id = ?`;
-  const param = [req.body.id];
-  db.query(sqlQuery, param, (err, result) => {
-    if (err) return res.status(500).json({msg: 'Something went wrong', err});
-    return res.status(200).json({
-      msg: 'Delete category success',
-      id: req.body.id,
-    });
-  });
+  const id = req.body.id;
+  categoryModel
+    .modelDeleteCategory(id)
+    .then(({status, result}) => {
+      sendResponse.success(res, status, {
+        msg: 'Delete category success',
+        result,
+      });
+    })
+    .catch(
+      sendResponse.error(res, 500, {
+        msg: 'Something when wrong',
+        err,
+      })
+    );
 };
 
 module.exports = {addCategory, updateCategory, deleteCategory, getCategory};
