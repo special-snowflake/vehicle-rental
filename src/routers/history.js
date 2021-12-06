@@ -185,7 +185,6 @@ historyRouter.delete(
           msg: 'Id cannot be found',
         });
       req.body = result[0];
-      console.log(req.body);
       next();
     });
   },
@@ -204,6 +203,12 @@ historyRouter.delete(
     } = req;
     const sqlQuery = 'DELETE FROM history WHERE id = ?';
     db.query(sqlQuery, [id], (err, result) => {
+      if (err.code == 'ER_ROW_IS_REFERENCED_2') {
+        return res.status(409).json({
+          msg: `Cannot delete data that's being used.`,
+          err: err.code,
+        });
+      }
       if (err)
         return res.status(500).json({
           msg: 'Something went wrong',

@@ -1,9 +1,10 @@
-/* eslint-disable */
 const express = require('express');
 const mysql = require('mysql');
 
 const vehiclesRouter = express.Router();
 const db = require('../config/db');
+
+const {checkingPatchWithData} = require('../helpers/collection');
 
 vehiclesRouter.get('/', (req, res, _next) => {
   const {query} = req;
@@ -115,6 +116,95 @@ vehiclesRouter.post(
         price,
         status,
         stock,
+      });
+    });
+  }
+);
+
+vehiclesRouter.patch(
+  '/',
+  (req, res, next) => {
+    const {
+      body: {
+        id,
+        categoryId,
+        cityId,
+        brand,
+        model,
+        capacity,
+        price,
+        status,
+        stock,
+      },
+    } = req;
+    const sqlQuery = `SELECT * FROM vehicles WHERE id = ?`;
+    db.query(sqlQuery, [id], (err, result) => {
+      if (err)
+        return res.status(500).json({
+          msg: 'Something went wrong',
+          err,
+        });
+      if (result.length === 0)
+        return res.status(409).json({
+          msg: 'Id is unidentified.',
+        });
+      let bodyUpdate = [];
+      bodyUpdate[0] = result[0];
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'city_id', cityId);
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'brand', brand);
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'model', model);
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'capacity', capacity);
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'price', price);
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'status', status);
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'stock', stock);
+      req.bodyUpdate = bodyUpdate[0];
+      next();
+    });
+  },
+  (req, res) => {
+    const {
+      bodyUpdate: {
+        id,
+        category_id,
+        city_id,
+        brand,
+        model,
+        capacity,
+        price,
+        status,
+        stock,
+      },
+    } = req;
+    const params = [
+      category_id,
+      city_id,
+      brand,
+      model,
+      capacity,
+      price,
+      status,
+      stock,
+      id,
+    ];
+    const sqlQuery = `UPDATE vehicles SET 
+    category_id = ?,
+    city_id = ?,
+    brand = ?,
+    model = ?,
+    capacity = ?,
+    price = ?,
+    status = ?,
+    stock = ?
+    WHERE id = ?;`;
+    db.query(sqlQuery, params, (err, result) => {
+      if (err)
+        return res.status(500).json({
+          msg: 'Something went wrong.',
+          err,
+        });
+      return res.status(200).json({
+        msg: 'Data successfully updated.',
+        newData: req.bodyUpdate,
       });
     });
   }
