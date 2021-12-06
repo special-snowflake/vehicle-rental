@@ -1,11 +1,15 @@
-/* eslint-disable */
 const express = require('express');
 const mysql = require('mysql');
 
 const historyRouter = express.Router();
 const db = require('../config/db');
 
-const {grabLocalYMD, calculateDays} = require('../helpers/collection');
+const {
+  grabLocalYMD,
+  calculateDays,
+  checkingPatchWithData,
+  checkingPatchDate,
+} = require('../helpers/collection');
 
 historyRouter.post(
   '/',
@@ -161,11 +165,91 @@ historyRouter.get('/', (req, res) => {
   });
 });
 
-historyRouter.patch('/', (req, res) => {
-  const {
-    body: {id, vehicleId, userId, rentalDate, returnDate, returnStatus, unit},
-  } = req;
-});
+historyRouter.patch(
+  '/',
+  (req, res, next) => {
+    const {
+      body: {
+        id,
+        vehicleId,
+        userId,
+        rentalDate,
+        returnDate,
+        returnStatus,
+        unit,
+        totalPayment,
+      },
+    } = req;
+    const sqlQuery = `SELECT * FROM history WHERE id = ?`;
+    db.query(sqlQuery, [id], (err, result) => {
+      if (err)
+        return res.status(500).json({
+          msg: 'Something went wrong',
+          err,
+        });
+      if (result.length === 0)
+        return res.status(409).json({
+          msg: 'Id is unidentified.',
+        });
+      let bodyUpdate = [];
+      bodyUpdate[0] = result[0];
+      bodyUpdate[0] = checkingPatchWithData(
+        bodyUpdate,
+        'vehicle_id',
+        vehicleId
+      );
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'user_id', userId);
+      bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'rental_date', rentalDate);
+      bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'return_date', returnDate);
+      bodyUpdate[0] = checkingPatchWithData(
+        bodyUpdate,
+        'return_status',
+        returnStatus
+      );
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'unit', unit);
+      bodyUpdate[0] = checkingPatchWithData(
+        bodyUpdate,
+        'total_payment',
+        totalPayment
+      );
+      req.bodyUpdate = bodyUpdate[0];
+      next();
+    });
+  },
+  (req, res) => {
+    const {bodyUpdate} = req;
+    const params = [
+      (vehicle_id = bodyUpdate.vehicle_id),
+      (user_id = bodyUpdate.user_id),
+      (rental_date = bodyUpdate.rental_date),
+      (return_date = bodyUpdate.return_date),
+      (return_status = bodyUpdate.return_status),
+      (unit = bodyUpdate.unit),
+      (total_payment = bodyUpdate.total_payment),
+      (id = bodyUpdate.id),
+    ];
+    const updateQuery = `UPDATE history SET
+    vehicle_id = ?,
+    user_id = ?,
+    rental_date = ?,
+    return_date = ?,
+    return_status = ?,
+    unit = ?,
+    total_payment = ?
+    WHERE id = ?;`;
+    db.query(updateQuery, params, (err, result) => {
+      if(err) return res.status(500).json({
+        msg: 'Something went wrong',
+        err,
+      });
+      return res.status(200).json({
+        msg: 'Data successfully updated.',
+        data: bodyUpdate,
+      })
+
+    });
+  }
+);
 
 historyRouter.delete(
   '/',
