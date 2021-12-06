@@ -5,7 +5,7 @@ const app = express();
 const router = require('./src/routers/main');
 
 const logger = morgan(
-    ':method :url :status :res[content-length] - :response-time ms'
+  ':method :url :status :res[content-length] - :response-time ms'
 );
 
 const port = 8000;

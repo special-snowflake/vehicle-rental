@@ -120,9 +120,13 @@ historyRouter.post(
 
 historyRouter.get('/', (req, res) => {
   const {
-    query: {order, sort},
+    query: {order, sort, userId},
   } = req;
   let orderBy = ``;
+  let whereId = ``;
+  if (userId !== 'undefined' && userId !== '') {
+    whereId = ` WHERE user_id = ${userId}`;
+  }
   if (typeof order !== 'undefined' && order !== '') {
     orderBy = ` ORDER BY ${order}`;
     if (typeof sort !== 'undefined') {
@@ -139,30 +143,36 @@ historyRouter.get('/', (req, res) => {
   h.total_payment
   FROM history h 
   JOIN vehicles v 
-  ON h.vehicle_id = v.id ?`;
-  db.query(sqlQuery, [mysql.raw(orderBy)], (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Data cannot be retrieved',
-        err,
+  ON h.vehicle_id = v.id 
+  ?
+  ?`;
+  db.query(
+    sqlQuery,
+    [mysql.raw(whereId), mysql.raw(orderBy)],
+    (err, result) => {
+      if (err)
+        return res.status(500).json({
+          msg: 'Data cannot be retrieved',
+          err,
+        });
+      if (result.length == 0)
+        return res.status(200).json({
+          msg: `There's no history to show`,
+        });
+      const history = [];
+      result.forEach((_element, index) => {
+        history[index] = result[index];
+        const rentalDate = grabLocalYMD(history[index].rental_date);
+        const returnDate = grabLocalYMD(history[index].return_date);
+        history[index] = {
+          ...history[index],
+          rental_date: rentalDate,
+          return_date: returnDate,
+        };
       });
-    if (result.length == 0)
-      return res.status(200).json({
-        msg: `There's no history to show`,
-      });
-    const history = [];
-    result.forEach((_element, index) => {
-      history[index] = result[index];
-      const rentalDate = grabLocalYMD(history[index].rental_date);
-      const returnDate = grabLocalYMD(history[index].return_date);
-      history[index] = {
-        ...history[index],
-        rental_date: rentalDate,
-        return_date: returnDate,
-      };
-    });
-    return res.status(200).json({history});
-  });
+      return res.status(200).json({history});
+    }
+  );
 });
 
 historyRouter.patch(
@@ -238,15 +248,15 @@ historyRouter.patch(
     total_payment = ?
     WHERE id = ?;`;
     db.query(updateQuery, params, (err, result) => {
-      if(err) return res.status(500).json({
-        msg: 'Something went wrong',
-        err,
-      });
+      if (err)
+        return res.status(500).json({
+          msg: 'Something went wrong',
+          err,
+        });
       return res.status(200).json({
         msg: 'Data successfully updated.',
         data: bodyUpdate,
-      })
-
+      });
     });
   }
 );

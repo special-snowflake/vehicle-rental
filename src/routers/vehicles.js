@@ -6,19 +6,63 @@ const db = require('../config/db');
 
 const {checkingPatchWithData} = require('../helpers/collection');
 
-vehiclesRouter.get('/', (req, res, _next) => {
-  const {query} = req;
-  let keyword = '%%';
-  if (query.type) keyword = `%${query.category}%`;
-  const sqlQuery = `SELECT * FROM vehicles WHERE category_id in 
-  (SELECT id FROM category WHERE category LIKE "?" )`;
-  db.query(sqlQuery, [mysql.raw(keyword)], (err, result) => {
-    if (err) {
-      return res.status(500).json({msg: 'Error Found', err, keyword});
+vehiclesRouter.get('/:category', (req, res) => {
+  const {params} = req;
+  const category = params.category;
+  console.log(params.category);
+  let sqlQuery = ``;
+  let msg = '';
+  if (category.toLocaleLowerCase() === 'popular') {
+    sqlQuery = `SELECT 
+    v.id,
+    c.city, 
+    v.brand,
+    v.model,
+    count(h.vehicle_id) 
+    jml_vhc 
+    FROM history h 
+    JOIN vehicles v 
+    ON v.id = h.vehicle_id
+    JOIN city c on c.id = v.city_id
+    group by h.vehicle_id
+    ORDER BY jml_vhc DESC
+    LIMIT 10`;
+    msg = 'Popular in Town:';
+  }
+  let keyword = ``;
+  if (
+    typeof category.toLocaleLowerCase() !== 'undefined' &&
+    category.toLocaleLowerCase() !== 'popular'
+  ) {
+    keyword = category;
+    msg = `Popular ${category}`;
+    sqlQuery = `SELECT 
+    v.id,
+    v.brand,
+    v.model,
+    ct.category, c.city  
+    FROM history h 
+    JOIN vehicles v ON v.id = h.vehicle_id 
+    JOIN city c ON c.id = v.city_id 
+    JOIN category ct ON ct.id = v.category_id
+    WHERE ct.category = ? 
+    GROUP BY v.id 
+    ORDER BY (count(h.vehicle_id))
+    LIMIT 5`;
+  }
+  db.query(sqlQuery, [keyword], (err, result) => {
+    if (err)
+      return res.status(500).json({
+        msg: 'Something went wrong',
+        err,
+      });
+    if (result.length == 0) {
+      msg = `Category can't be  found`;
+      return res.status(200).json({msg});
     }
     return res.status(200).json({
+      msg,
       result,
-      keyword,
     });
   });
 });
@@ -127,7 +171,6 @@ vehiclesRouter.patch(
     const {
       body: {
         id,
-        categoryId,
         cityId,
         brand,
         model,

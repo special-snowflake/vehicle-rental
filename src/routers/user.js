@@ -143,7 +143,6 @@ userRouter.patch(
         email,
         phone,
         address,
-        joinDate,
       },
     } = req;
     const sqlQuery = `SELECT * FROM users WHERE id = ?`;
@@ -170,7 +169,6 @@ userRouter.patch(
       bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'email', email);
       bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'phone', phone);
       bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'address', address);
-      bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'join_date', joinDate);
       console.log(bodyUpdate);
       req.bodyUpdate = bodyUpdate[0];
       next();
@@ -187,7 +185,6 @@ userRouter.patch(
         email,
         phone,
         address,
-        join_date,
       },
     } = req;
     const params = [
@@ -198,7 +195,6 @@ userRouter.patch(
       email,
       phone,
       address,
-      join_date,
       id,
     ];
     const sqlQuery = `UPDATE users SET 
@@ -208,8 +204,7 @@ userRouter.patch(
     sex = ?,
     email = ?,
     phone = ?,
-    address = ?,
-    join_date = ?
+    address = ?
     WHERE id = ?;`;
     db.query(sqlQuery, params, (err, result) => {
       if(err) return res.status(500).json({
