@@ -1,10 +1,7 @@
 const mysql = require('mysql');
 const db = require('../config/db');
 
-const {
-  grabLocalYMD,
-  calculateDays,
-} = require('../helpers/collection');
+const {grabLocalYMD, calculateDays} = require('../helpers/collection');
 
 const addHistory = (req, res) => {
   const {
@@ -162,17 +159,18 @@ const deleteHistory = (req, res) => {
   } = req;
   const sqlQuery = 'DELETE FROM history WHERE id = ?';
   db.query(sqlQuery, [id], (err, result) => {
-    if (err.code == 'ER_ROW_IS_REFERENCED_2') {
-      return res.status(409).json({
-        msg: `Cannot delete data that's being used.`,
-        err: err.code,
-      });
-    }
-    if (err)
+    if (err) {
+      if (err.code == 'ER_ROW_IS_REFERENCED_2') {
+        return res.status(409).json({
+          msg: `Cannot delete data that's being used.`,
+          err: err.code,
+        });
+      }
       return res.status(500).json({
         msg: 'Something went wrong',
         err,
       });
+    }
     return res.status(200).json({
       msg: 'History deleted',
       id,

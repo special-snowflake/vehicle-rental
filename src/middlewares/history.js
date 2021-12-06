@@ -38,23 +38,18 @@ const getUserId = (req, res, next) => {
   const {
     body: {userId},
   } = req;
-  const sqlQuery = `SELECT id FROM users WHERE id = ?`;
-  db.query(sqlQuery, [userId], (err, result) => {
-    if (err) {
-      return res.status(500).json({
-        msg: 'Something went wrong.',
-        err,
-      });
-    }
-    if (result.length == 0) {
-      return res.status(404).json({
-        msg: 'User cannot be found!',
-        err,
-      });
-    }
-    req.body.userId = result[0].id;
-    next();
-  });
+  modelHistory
+    .modelGetUserId(userId)
+    .then(({status, result}) => {
+      if (status == 404) {
+        return resHelper.success(res, status, {msg: 'User cannot be found!'});
+      }
+      req.body.userId = result[0].id;
+      next();
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {msg: 'Something went wrong.', err});
+    });
 };
 
 const getDataForUpdate = (req, res, next) => {
@@ -70,57 +65,57 @@ const getDataForUpdate = (req, res, next) => {
       totalPayment,
     },
   } = req;
-  const sqlQuery = `SELECT * FROM history WHERE id = ?`;
-  db.query(sqlQuery, [id], (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Something went wrong',
-        err,
-      });
-    if (result.length === 0)
-      return res.status(409).json({
-        msg: 'Id is unidentified.',
-      });
-    let bodyUpdate = [];
-    bodyUpdate[0] = result[0];
-    bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'vehicle_id', vehicleId);
-    bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'user_id', userId);
-    bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'rental_date', rentalDate);
-    bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'return_date', returnDate);
-    bodyUpdate[0] = checkingPatchWithData(
-      bodyUpdate,
-      'return_status',
-      returnStatus
-    );
-    bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'unit', unit);
-    bodyUpdate[0] = checkingPatchWithData(
-      bodyUpdate,
-      'total_payment',
-      totalPayment
-    );
-    req.bodyUpdate = bodyUpdate[0];
-    next();
-  });
+  modelHistory
+    .modelGetDataForUpdate(id)
+    .then(({status, result}) => {
+      if (status == 409) {
+        return resHelper.success(res, status, {msg: 'Id is unidentified.'});
+      }
+      const bodyUpdate = [];
+      bodyUpdate[0] = result[0];
+      bodyUpdate[0] = checkingPatchWithData(
+        bodyUpdate,
+        'vehicle_id',
+        vehicleId
+      );
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'user_id', userId);
+      bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'rental_date', rentalDate);
+      bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'return_date', returnDate);
+      bodyUpdate[0] = checkingPatchWithData(
+        bodyUpdate,
+        'return_status',
+        returnStatus
+      );
+      bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'unit', unit);
+      bodyUpdate[0] = checkingPatchWithData(
+        bodyUpdate,
+        'total_payment',
+        totalPayment
+      );
+      req.bodyUpdate = bodyUpdate[0];
+      next();
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {msg: 'Something went wrong.', err});
+    });
 };
 
 const getDataForDelete = (req, res, next) => {
   const {
     body: {id},
   } = req;
-  const sqlQuery = 'SELECT * FROM history WHERE id = ?';
-  db.query(sqlQuery, [id], (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Something went wrong',
-        err,
-      });
-    if (result.length === 0)
-      return res.status(404).json({
-        msg: 'Id cannot be found',
-      });
-    req.body = result[0];
-    next();
-  });
+  modelHistory
+    .modelGetDataForDelete(id)
+    .then(({status, result}) => {
+      if (status == 404) {
+        return resHelper.success(res, status, {msg: 'Id cannot be found'});
+      }
+      req.body = result[0];
+      next();
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {msg: 'Something went wrong', err});
+    });
 };
 
 module.exports = {
