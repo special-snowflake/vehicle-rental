@@ -8,12 +8,8 @@
         "standard"
     ],
     "parserOptions": {
-        "ecmaVersion": 6,
-        "ecmaFeatures": {
-          "experimentalObjectRestSpread": true
-        }
+        "ecmaVersion": 13
     },
     "rules": {
-        "linebreak-style": 0 
     }
 }
