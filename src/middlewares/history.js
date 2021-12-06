@@ -1,5 +1,8 @@
 const db = require('../config/db');
 
+const modelHistory = require('../models/history');
+const resHelper = require('../helpers/sendResponse');
+
 const {
   checkingPatchWithData,
   checkingPatchDate,
@@ -9,33 +12,26 @@ const checkInputHistory = (req, res, next) => {
   const {
     body: {vehicleId, unit},
   } = req;
-  const sqlQuery = `SELECT id, stock, price, status 
-    FROM vehicles WHERE id = ?`;
-  db.query(sqlQuery, [vehicleId], (err, result) => {
-    if (err) {
-      return res.status(500).json({
-        msg: 'Something went wrong.',
-        err,
-      });
-    }
-    if (result.length == 0) {
-      return res.status(404).json({
-        msg: 'Vehicle cannot be found!',
-      });
-    }
-    if (result[0].stock < unit)
-      return res.status(500).json({
-        msg: `Unit shouldn't be bigger than stock`,
-        stock: result.stock,
-      });
-    if (result[0].status !== 'Available')
-      return res.status(500).json({
-        msg: `Vehicle isn't available for booking.`,
-      });
-    req.body.vehicleId = result[0].id;
-    req.body.price = result[0].price;
-    next();
-  });
+  modelHistory
+    .modelCheckInputHistory(vehicleId, unit)
+    .then(({status, result}) => {
+      if (status == 404) {
+        return resHelper.success(res, status, {
+          msg: 'Vehicle cannot be found!',
+        });
+      }
+      if (status == 403) {
+        return resHelper.success(res, status, {
+          msg: `Vehicle isn't available for booking.`,
+        });
+      }
+      req.body.vehicleId = result[0].id;
+      req.body.price = result[0].price;
+      next();
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {err});
+    });
 };
 
 const getUserId = (req, res, next) => {
