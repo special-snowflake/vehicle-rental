@@ -1,6 +1,9 @@
 const mysql = require('mysql');
 const db = require('../config/db');
 
+const modelHistory = require('../models/history');
+const resHelper = require('../helpers/sendResponse');
+
 const {grabLocalYMD, calculateDays} = require('../helpers/collection');
 
 const addHistory = (req, res) => {
@@ -21,7 +24,7 @@ const addHistory = (req, res) => {
       .send('Return date must be bigger or the same as rental date.');
   const rentalDays = calculateDays(rental_date, return_date);
   const totalPayment = unit * rentalDays * price;
-  const preapare = [
+  const prepare = [
     vehicleId,
     userId,
     rental_date,
@@ -30,27 +33,25 @@ const addHistory = (req, res) => {
     unit,
     totalPayment,
   ];
-  const sqlQuery = `INSERT INTO history 
-    (vehicle_id, user_id, rental_date, return_date, return_status, unit, total_payment)
-    VALUES
-    (?, ?, ?, ?, ?, ?, ?)`;
-  db.query(sqlQuery, preapare, (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Error occure while adding history',
-        err,
-      });
-    return res.status(200).json({
-      id: result.insertId,
-      vehicleId,
-      userId,
-      rental_date,
-      return_date,
-      return_status,
-      unit,
-      totalPayment,
+  modelHistory
+    .modelAddHistory(prepare)
+    .then(({status, result}) => {
+      const data = {
+        msg: 'New History Added',
+        id: result.insertId,
+        vehicleId,
+        userId,
+        rental_date,
+        return_date,
+        return_status,
+        unit,
+        totalPayment,
+      };
+      resHelper.success(res, status, data);
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {msg: 'Something went wrong', err});
     });
-  });
 };
 
 const getHistory = (req, res) => {
@@ -70,30 +71,15 @@ const getHistory = (req, res) => {
       }
     }
   }
-  const sqlQuery = `SELECT 
-    h.id, v.brand, v.model, 
-    h.rental_date, 
-    h.return_date, 
-    h.return_status,
-    h.total_payment
-    FROM history h 
-    JOIN vehicles v 
-    ON h.vehicle_id = v.id 
-    ?
-    ?`;
-  db.query(
-    sqlQuery,
-    [mysql.raw(whereId), mysql.raw(orderBy)],
-    (err, result) => {
-      if (err)
-        return res.status(500).json({
-          msg: 'Data cannot be retrieved',
-          err,
-        });
-      if (result.length == 0)
-        return res.status(200).json({
+  const prepare = [mysql.raw(whereId), mysql.raw(orderBy)];
+  modelHistory
+    .modelGetHistory(prepare)
+    .then(({status, result}) => {
+      if (result.length == 0) {
+        return resHelper.success(res, status, {
           msg: `There's no history to show`,
         });
+      }
       const history = [];
       result.forEach((_element, index) => {
         history[index] = result[index];
@@ -105,14 +91,16 @@ const getHistory = (req, res) => {
           return_date: returnDate,
         };
       });
-      return res.status(200).json({history});
-    }
-  );
+      return resHelper.success(res, status, {msg: 'History:', history});
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {msg: 'Data cannot be retrieved', err});
+    });
 };
 
 const updateHistory = (req, res) => {
   const {bodyUpdate} = req;
-  const params = [
+  const prepare = [
     (vehicle_id = bodyUpdate.vehicle_id),
     (user_id = bodyUpdate.user_id),
     (rental_date = bodyUpdate.rental_date),
@@ -122,26 +110,34 @@ const updateHistory = (req, res) => {
     (total_payment = bodyUpdate.total_payment),
     (id = bodyUpdate.id),
   ];
-  const updateQuery = `UPDATE history SET
-    vehicle_id = ?,
-    user_id = ?,
-    rental_date = ?,
-    return_date = ?,
-    return_status = ?,
-    unit = ?,
-    total_payment = ?
-    WHERE id = ?;`;
-  db.query(updateQuery, params, (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Something went wrong',
-        err,
-      });
-    return res.status(200).json({
-      msg: 'Data successfully updated.',
-      data: bodyUpdate,
+  modelHistory
+    .modelUpdateHistory(prepare)
+    .then(({status, result}) => {
+      resHelper.success(res, status, {bodyUpdate});
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {msg: 'Something went wrong', err});
     });
-  });
+  // const updateQuery = `UPDATE history SET
+  //   vehicle_id = ?,
+  //   user_id = ?,
+  //   rental_date = ?,
+  //   return_date = ?,
+  //   return_status = ?,
+  //   unit = ?,
+  //   total_payment = ?
+  //   WHERE id = ?;`;
+  // db.query(updateQuery, prepare, (err, result) => {
+  //   if (err)
+  //     return res.status(500).json({
+  //       msg: 'Something went wrong',
+  //       err,
+  //     });
+  //   return res.status(200).json({
+  //     msg: 'Data successfully updated.',
+  //     data: bodyUpdate,
+  //   });
+  // });
 };
 
 const deleteHistory = (req, res) => {

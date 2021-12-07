@@ -68,9 +68,83 @@ const modelGetDataForDelete = (id) => {
   });
 };
 
+const modelAddHistory = (prepare) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = `INSERT INTO history 
+    (vehicle_id, 
+    user_id, 
+    rental_date, 
+    return_date, 
+    return_status, 
+    unit, 
+    total_payment)
+    VALUES
+    (?, ?, ?, ?, ?, ?, ?)`;
+    db.query(sqlQuery, prepare, (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve({status: 200, result});
+    });
+  });
+};
+
+const modelGetHistory = (prepare) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = `SELECT 
+    h.id, v.brand, v.model, 
+    h.rental_date, 
+    h.return_date, 
+    h.return_status,
+    h.total_payment
+    FROM history h 
+    JOIN vehicles v 
+    ON h.vehicle_id = v.id 
+    ?
+    ?`;
+    db.query(sqlQuery, prepare, (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve({status: 200, result});
+    });
+  });
+};
+
+const modelUpdateHistory = (prepare) => {
+  return new Promise((resolve, reject) => {
+    const updateQuery = `UPDATE history SET
+    vehicle_id = ?,
+    user_id = ?,
+    rental_date = ?,
+    return_date = ?,
+    return_status = ?,
+    unit = ?,
+    total_payment = ?
+    WHERE id = ?;`;
+    db.query(updateQuery, prepare, (err, result) => {
+      if (err) {
+        return reject(err);
+        res.status(500).json({
+          msg: 'Something went wrong',
+          err,
+        });
+      }
+      return resolve({status: 200, result});
+      res.status(200).json({
+        msg: 'Data successfully updated.',
+        data: bodyUpdate,
+      });
+    });
+  });
+};
+
 module.exports = {
   modelCheckInputHistory,
   modelGetUserId,
   modelGetDataForUpdate,
   modelGetDataForDelete,
+  modelAddHistory,
+  modelGetHistory,
+  modelUpdateHistory,
 };
