@@ -118,26 +118,6 @@ const updateHistory = (req, res) => {
     .catch((err) => {
       resHelper.error(res, 500, {msg: 'Something went wrong', err});
     });
-  // const updateQuery = `UPDATE history SET
-  //   vehicle_id = ?,
-  //   user_id = ?,
-  //   rental_date = ?,
-  //   return_date = ?,
-  //   return_status = ?,
-  //   unit = ?,
-  //   total_payment = ?
-  //   WHERE id = ?;`;
-  // db.query(updateQuery, prepare, (err, result) => {
-  //   if (err)
-  //     return res.status(500).json({
-  //       msg: 'Something went wrong',
-  //       err,
-  //     });
-  //   return res.status(200).json({
-  //     msg: 'Data successfully updated.',
-  //     data: bodyUpdate,
-  //   });
-  // });
 };
 
 const deleteHistory = (req, res) => {

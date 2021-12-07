@@ -46,11 +46,12 @@ const getVehicles = (req, res) => {
       LIMIT 10`;
   }
   db.query(sqlQuery, [keyword], (err, result) => {
-    if (err)
+    if (err) {
       return res.status(500).json({
         msg: 'Something went wrong',
         err,
       });
+    }
     if (result.length == 0) {
       msg = `Category can't be  found`;
       return res.status(200).json({msg});
@@ -59,6 +60,39 @@ const getVehicles = (req, res) => {
       msg,
       result,
     });
+  });
+};
+
+const getAllVehicles = (req, res) => {
+  let {
+    query: {orderBy, sort},
+  } = req;
+  let sqlQuery = `SELECT 
+  v.id, c.city, ct.category, v.model, v.brand, 
+  v.capacity, v.price FROM vehicles v
+  JOIN city c ON v.city_id = c.id
+  JOIN category ct ON v.category_id = ct.id`;
+  if (orderBy !== '' && typeof orderBy !== 'undefined') {
+    if (typeof sort !== 'undefined') {
+      sort = sort.toLocaleLowerCase() === 'desc' ? ' DESC' : ' ASC';
+    } else {
+      sort = ' ASC';
+    }
+    sqlQuery = `SELECT 
+    v.id, c.city, ct.category, v.model, v.brand, 
+    v.capacity, v.price FROM vehicles v
+    JOIN city c ON v.city_id = c.id
+    JOIN category ct ON v.category_id = ct.id
+    ORDER BY  ? ?`;
+  }
+  db.query(sqlQuery, [mysql.raw(orderBy), mysql.raw(sort)], (err, result) => {
+    if (err) {
+      if (err.code == 'ER_BAD_FIELD_ERROR') {
+        return res.status(500).json({msg: 'Wrong input orderBy'});
+      }
+      return res.status(500).json({msg: 'Something went wrong ', err});
+    }
+    res.status(200).json({msg: 'Vehilces: ', result});
   });
 };
 
@@ -93,11 +127,12 @@ const addNewVehicle = (req, res) => {
     ( category_id, city_id, brand, model, capacity, price, status, stock) 
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ?);`;
   db.query(sqlQuery, prepare, (err, result) => {
-    if (err)
+    if (err) {
       return res.status(500).json({
         msg: 'Something went wrong',
         err,
       });
+    }
     return res.status(200).json({
       msg: 'New Item is Added to Vehicles',
       category,
@@ -148,11 +183,12 @@ const updateVehicle = (req, res) => {
     stock = ?
     WHERE id = ?;`;
   db.query(sqlQuery, params, (err, result) => {
-    if (err)
+    if (err) {
       return res.status(500).json({
         msg: 'Something went wrong.',
         err,
       });
+    }
     return res.status(200).json({
       msg: 'Data successfully updated.',
       newData: req.bodyUpdate,
@@ -160,4 +196,23 @@ const updateVehicle = (req, res) => {
   });
 };
 
-module.exports = {getVehicles, addNewVehicle, updateVehicle};
+const deleteVehicle = (req, res) => {
+  const {
+    body: {id},
+  } = req;
+  const sqlQuery = `DELETE FROM vehicles where id = ?`;
+  db.query(sqlQuery, [id], (err, result) => {
+    if (err) {
+      return res.status(500).json({msg: 'Something went wrong', err});
+    }
+    return res.status(200).json({msg: 'Vehicle deleted', id, result});
+  });
+};
+
+module.exports = {
+  getVehicles,
+  addNewVehicle,
+  updateVehicle,
+  getAllVehicles,
+  deleteVehicle,
+};

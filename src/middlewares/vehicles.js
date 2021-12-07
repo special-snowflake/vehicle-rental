@@ -1,4 +1,3 @@
-const mysql = require('mysql');
 const db = require('../config/db');
 
 const {checkingPatchWithData} = require('../helpers/collection');
@@ -55,16 +54,18 @@ const getDataForUpdate = (req, res, next) => {
   } = req;
   const sqlQuery = `SELECT * FROM vehicles WHERE id = ?`;
   db.query(sqlQuery, [id], (err, result) => {
-    if (err)
+    if (err) {
       return res.status(500).json({
         msg: 'Something went wrong',
         err,
       });
-    if (result.length === 0)
+    }
+    if (result.length === 0) {
       return res.status(409).json({
         msg: 'Id is unidentified.',
       });
-    let bodyUpdate = [];
+    }
+    const bodyUpdate = [];
     bodyUpdate[0] = result[0];
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'city_id', cityId);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'brand', brand);
@@ -77,4 +78,27 @@ const getDataForUpdate = (req, res, next) => {
     next();
   });
 };
-module.exports = {checkInputCategory, checkInputCity, getDataForUpdate};
+
+const getDataForDelete = (req, res, next) => {
+  const {
+    body: {id},
+  } = req;
+  const sqlQuery = `SELECT * FROM history where vehicle_id = ?`;
+  db.query(sqlQuery, [id], (err, result) => {
+    if (err) {
+      return res.status(500).json({msg: 'Something went wrong', err});
+    }
+    if (result.length !== 0) {
+      return res
+        .status(200)
+        .json({msg: 'Cannot delete vehicle, data is being used in history'});
+    }
+    next();
+  });
+};
+module.exports = {
+  checkInputCategory,
+  checkInputCity,
+  getDataForUpdate,
+  getDataForDelete,
+};
