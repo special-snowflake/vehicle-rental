@@ -6,7 +6,7 @@ const checkInputCategory = (req, res, next) => {
   const {
     body: {category},
   } = req;
-  const sqlQuery = `SELECT id FROM category WHERE category_id = ?`;
+  const sqlQuery = `SELECT id FROM category WHERE category = ?`;
   console.log(sqlQuery);
   db.query(sqlQuery, [category], (err, result) => {
     if (err) {

@@ -10,13 +10,15 @@ const checkUsername = (req, res, next) => {
   const {
     body: {username},
   } = req;
-  const sqlCheckUserAccess = `SELECT username FROM user_access WHERE username = '?'`;
+  const sqlCheckUserAccess = `SELECT username FROM user_access 
+  WHERE username = '?'`;
   db.query(sqlCheckUserAccess, [mysql.raw(username)], (err, result) => {
-    if (err)
+    if (err) {
       return res.status(200).json({
         msg: 'Something went wrong',
         err,
       });
+    }
     if (result.length !== 0) {
       return res.status(409).json({
         msg: 'Username sudah digunakan. Masukkan username lain.',
@@ -73,16 +75,18 @@ const getDataUserForUpdate = (req, res, next) => {
   } = req;
   const sqlQuery = `SELECT * FROM users WHERE id = ?`;
   db.query(sqlQuery, [id], (err, result) => {
-    if (err)
+    if (err) {
       return res.status(500).json({
         msg: 'Something went wrong',
         err,
       });
-    if (result.length === 0)
+    }
+    if (result.length === 0) {
       return res.status(409).json({
         msg: 'Id is unidentified.',
       });
-    let bodyUpdate = [];
+    }
+    const bodyUpdate = [];
     bodyUpdate[0] = result[0];
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'first_name', firstName);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'last_name', lastName);

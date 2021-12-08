@@ -55,17 +55,17 @@ const deleteCategory = (req, res) => {
   categoryModel
     .modelDeleteCategory(id)
     .then(({status, result}) => {
-      sendResponse.success(res, status, {
+      return sendResponse.success(res, status, {
         msg: 'Delete category success',
-        result,
+        id,
       });
     })
-    .catch(
+    .catch((err) => {
       sendResponse.error(res, 500, {
         msg: 'Something when wrong',
         err,
-      })
-    );
+      });
+    });
 };
 
 module.exports = {addCategory, updateCategory, deleteCategory, getCategory};

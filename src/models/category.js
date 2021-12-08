@@ -45,12 +45,8 @@ const modelUpdateCategory = (category, id) => {
 const modelDeleteCategory = (id) => {
   return new Promise((resolve, reject) => {
     const sqlQuery = `DELETE FROM category WHERE id = ?`;
-    const param = [id];
-    db.query(sqlQuery, param, (err, result) => {
+    db.query(sqlQuery, [id], (err, result) => {
       if (err) return reject(err);
-      if (result.length == 0) {
-        return resolve({status: 204, result});
-      }
       resolve({status: 200, result});
     });
   });

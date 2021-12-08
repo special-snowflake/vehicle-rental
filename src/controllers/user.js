@@ -1,5 +1,7 @@
 const db = require('../config/db.js');
 
+const modelUser = require('../models/user');
+const resHelper = require('../helpers/sendResponse');
 const {grabLocalYMD} = require('../helpers/collection');
 
 const insertUserAccess = (req, res) => {
@@ -57,6 +59,25 @@ const getUserByUnsername = (req, res) => {
   });
 };
 
+const getUserByName = (req, res) => {
+  const {query} = req;
+  const name = query.name;
+  modelUser
+    .searchUserByName(name)
+    .then(({status, result}) => {
+      if (result.length == 0) {
+        return resHelper.success(res, status, {msg: `0 found with that name.`});
+      }
+      return resHelper.success(res, status, {
+        msg: `${result.length} User Found:`,
+        result,
+      });
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {msg: 'Something went wrong', err});
+    });
+};
+
 const updateUser = (req, res) => {
   const {
     bodyUpdate: {
@@ -102,4 +123,9 @@ const updateUser = (req, res) => {
   });
 };
 
-module.exports = {insertUserAccess, getUserByUnsername, updateUser};
+module.exports = {
+  insertUserAccess,
+  getUserByUnsername,
+  updateUser,
+  getUserByName,
+};
