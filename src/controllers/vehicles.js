@@ -3,7 +3,6 @@ const vehiclesModel = require('../models/vehicles');
 
 const getVehicles = (req, res) => {
   const {params} = req;
-  console.log('controller param get vehicles', params.category);
   vehiclesModel
     .getVehicles(params.category)
     .then(({status, result}) => {
@@ -16,7 +15,7 @@ const getVehicles = (req, res) => {
 
 const getAllVehicles = (req, res) => {
   const {
-    query: {orderBy, sort},
+    query: {orderBy, sort, id},
   } = req;
   vehiclesModel
     .getAllVehicles(orderBy, sort)
@@ -24,13 +23,15 @@ const getAllVehicles = (req, res) => {
       return resHelper.success(res, status, result);
     })
     .catch((err) => {
-      console.log('controller getall');
       if (err.errno == '1054') {
-        console.log('ctrl getall err', err.errno);
         return resHelper.error(res, 500, {msg: 'Wrong input oderBy.'});
       }
       resHelper.error(res, 500, {msg: 'Something went wrong ', err});
     });
+};
+
+const getVehicleById = (req, res) => {
+
 };
 
 const addNewVehicle = (req, res) => {
@@ -105,9 +106,14 @@ const updateVehicle = (req, res) => {
     id,
   ];
   vehiclesModel
-    .updateVehicle(params)
+    .updateVehicle(params, req)
     .then(({status, result}) => {
-      return resHelper(res, status, result);
+      return resHelper.success(res, status, {
+        result: {
+          msg: 'Data successfully updated.',
+          newData: req.bodyUpdate,
+        },
+      });
     })
     .catch((err) => {
       resHelper.error(res, 500, err);
@@ -137,4 +143,5 @@ module.exports = {
   updateVehicle,
   getAllVehicles,
   deleteVehicle,
+  getVehicleById,
 };

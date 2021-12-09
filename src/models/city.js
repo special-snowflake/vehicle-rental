@@ -1,14 +1,11 @@
 const mysql = require('mysql');
 const db = require('../config/db');
-
+const modelHelp = require('../helpers/modelsHelper');
 const modelAddcity = (city) => {
   return new Promise((resolve, reject) => {
     const sqlQuery = `INSERT INTO city (city) VALUES (?)`;
     db.query(sqlQuery, [city], (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve({status: 200, result});
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
     });
   });
 };

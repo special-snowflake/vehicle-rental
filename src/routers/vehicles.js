@@ -7,6 +7,7 @@ const middleVehicles = require('../middlewares/vehicles');
 vehiclesRouter.get('/:category', controllerVehicles.getVehicles);
 vehiclesRouter.get('/', controllerVehicles.getAllVehicles);
 
+
 vehiclesRouter.post(
   '/',
   middleVehicles.checkInputCategory,

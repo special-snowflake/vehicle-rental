@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const db = require('../config/db');
+const modelHelp = require('../helpers/modelsHelper');
 
 const getVehicles = (category) => {
   return new Promise((resolve, reject) => {
@@ -73,10 +74,25 @@ const getAllVehicles = (orderBy, sort) => {
     ORDER BY  ? ?`;
     }
     db.query(sqlQuery, [mysql.raw(orderBy), mysql.raw(sort)], (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve({status: 200, result});
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    });
+  });
+};
+
+const getDataForUpdate = (id) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = `SELECT * FROM vehicles WHERE id = ?`;
+    db.query(sqlQuery, [id], (err, result) => {
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    });
+  });
+};
+
+const getVehiclesById = (id) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = `SELECT * FROM vehiclse WHERE id = ?`;
+    db.query(sqlQuery, [id], (err, result) => {
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
     });
   });
 };
@@ -95,16 +111,7 @@ const updateVehicle = (params) => {
     stock = ?
     WHERE id = ?;`;
     db.query(sqlQuery, params, (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve({
-        status: 200,
-        result: {
-          msg: 'Data successfully updated.',
-          newData: req.bodyUpdate,
-        },
-      });
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
     });
   });
 };
@@ -116,10 +123,7 @@ const addNewVehicle = (prepare) => {
     ( category_id, city_id, brand, model, capacity, price, status, stock) 
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ?);`;
     db.query(sqlQuery, prepare, (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve({status: 200, result});
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
     });
   });
 };
@@ -135,10 +139,33 @@ const deleteVehicle = (id) => {
     });
   });
 };
+
+const checkInputCategory = (category) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = `SELECT id FROM category WHERE category = ?`;
+    db.query(sqlQuery, [category], (err, result) => {
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    });
+  });
+};
+
+const checkInputCity = (city) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = `SELECT id FROM city WHERE city = ?`;
+    db.query(sqlQuery, [city], (err, result) => {
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    });
+  });
+};
+
 module.exports = {
   getVehicles,
   getAllVehicles,
   updateVehicle,
   addNewVehicle,
   deleteVehicle,
+  checkInputCategory,
+  checkInputCity,
+  getDataForUpdate,
+  getVehiclesById,
 };

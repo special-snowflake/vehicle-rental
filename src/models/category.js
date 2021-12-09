@@ -1,14 +1,13 @@
 const mysql = require('mysql');
 const db = require('../config/db');
 
+const modelHelp = require('../helpers/modelsHelper');
+
 const modelAddCategory = (category) => {
   return new Promise((resolve, reject) => {
     const sqlQuery = `INSERT INTO category (category) VALUES (?)`;
     db.query(sqlQuery, [category], (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve({status: 200, result});
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
     });
   });
 };

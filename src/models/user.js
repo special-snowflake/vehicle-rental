@@ -1,5 +1,6 @@
 const mysql = require('mysql');
 const db = require('../config/db');
+const modelHelp = require('../helpers/modelsHelper');
 
 const searchUserByName = (name) => {
   console.log(name);
@@ -31,10 +32,7 @@ const insertUserAccess = (params) => {
     (user_id, username, password)
     VALUES (?, ?, ?);`;
     db.query(sqlQuery, params, (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve({status: 200, result});
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
     });
   });
 };

@@ -1,5 +1,6 @@
 // const mysql = require('mysql');
 const db = require('../config/db');
+const modelHelp = require('../helpers/modelsHelper');
 
 const modelCheckInputHistory = (id, unit) => {
   return new Promise((resolve, reject) => {
@@ -103,10 +104,7 @@ const modelGetHistory = (prepare) => {
     ?
     ?`;
     db.query(sqlQuery, prepare, (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      resolve({status: 200, result});
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
     });
   });
 };

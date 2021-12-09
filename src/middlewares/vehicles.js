@@ -1,53 +1,45 @@
 const db = require('../config/db');
 
+const vehiclesModel = require('../models/vehicles');
+const resHelper = require('../helpers/sendResponse');
 const {checkingPatchWithData} = require('../helpers/collection');
 
 const checkInputCategory = (req, res, next) => {
   const {
     body: {category},
   } = req;
-  const sqlQuery = `SELECT id FROM category WHERE category = ?`;
-  console.log(sqlQuery);
-  db.query(sqlQuery, [category], (err, result) => {
-    if (err) {
-      return res.status(500).json({
-        msg: 'Something went wrong.',
-        err,
-      });
-    }
-    if (result.length == 0) {
-      return res.status(404).json({
-        msg: 'Category cannot be found!',
-        err,
-      });
-    }
-    req.body.categoryID = result[0].id;
-    next();
-  });
+  vehiclesModel
+    .checkInputCategory(category)
+    .then(({status, result}) => {
+      if (result.length == 0) {
+        return resHelper.success(res, status, {msg: 'Category is invalid'});
+      }
+      req.body.categoryID = result[0].id;
+      next();
+    })
+    .catch((err) => {
+      return resHelper.error(res, 500, {msg: 'Something went wrong.', err});
+    });
 };
 
 const checkInputCity = (req, res, next) => {
   const {
     body: {city},
   } = req;
-  const sqlQuery = `SELECT id FROM city WHERE city = ?`;
-  db.query(sqlQuery, [city], (err, result) => {
-    if (err) {
-      return res.status(500).json({
-        msg: 'Something went wrong.',
-        err,
-      });
-    }
-    if (result.length == 0) {
-      return res.status(404).json({
-        msg: 'City cannot be found!',
-        err,
-      });
-    }
-    req.body.cityID = result[0].id;
-    next();
-  });
+  vehiclesModel
+    .checkInputCity(city)
+    .then(({status, result}) => {
+      if (result.length == 0) {
+        return resHelper.success(res, status, {msg: 'Category is invalid'});
+      }
+      req.body.cityID = result[0].id;
+      next();
+    })
+    .catch((err) => {
+      return resHelper.error(res, 500, {msg: 'Something went wrong.', err});
+    });
 };
+
 const getDataForUpdate = (req, res, next) => {
   const {
     body: {id, cityId, brand, model, capacity, price, status, stock},
@@ -55,15 +47,10 @@ const getDataForUpdate = (req, res, next) => {
   const sqlQuery = `SELECT * FROM vehicles WHERE id = ?`;
   db.query(sqlQuery, [id], (err, result) => {
     if (err) {
-      return res.status(500).json({
-        msg: 'Something went wrong',
-        err,
-      });
+      return resHelper.error(res, 500, {msg: 'Something went wrong', err});
     }
     if (result.length === 0) {
-      return res.status(409).json({
-        msg: 'Id is unidentified.',
-      });
+      return resHelper.success(res, status, {msg: 'Id is unidetified'});
     }
     const bodyUpdate = [];
     bodyUpdate[0] = result[0];
@@ -75,6 +62,7 @@ const getDataForUpdate = (req, res, next) => {
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'status', status);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'stock', stock);
     req.bodyUpdate = bodyUpdate[0];
+    console.log('middle upd veh');
     next();
   });
 };
