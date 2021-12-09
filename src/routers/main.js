@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
+const authRouter = require('./auth');
 const homeRouter = require('./home');
 const userRouter = require('./user');
 const testimonyRouter = require('./testimony');
@@ -9,6 +10,7 @@ const vehiclesRouter = require('./vehicles');
 const categoryRouter = require('./category');
 const cityRouter = require('./city');
 
+router.use('/auth', authRouter);
 router.use('/home', homeRouter);
 router.use('/user', userRouter);
 router.use('/testimony', testimonyRouter);
@@ -21,6 +23,4 @@ router.get('/', (_req, res) => {
   res.redirect('home');
 });
 
-
 module.exports = router;
-

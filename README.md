@@ -16,4 +16,6 @@ All program/package needed to run this:
 9. Run this program using [Postman](https://www.postman.com/downloads/).
 ![image](https://user-images.githubusercontent.com/22422287/144994511-f1ed50a5-1994-43b6-8e3f-950f2c30bd11.png)
 10. To keep track your http request on your console, you may install morgan ```$ npm install morgan``` 
-11. ![image](https://user-images.githubusercontent.com/22422287/145001545-03368d60-3ac5-4226-9b8c-b5638b268edc.png)
+![image](https://user-images.githubusercontent.com/22422287/145001545-03368d60-3ac5-4226-9b8c-b5638b268edc.png)
+11. Use jsonwebtoken to decode and veryfy a JWT ```$ npm install jsonwebtoken```.
+12. Use cors to set a enable CORS(Cross-origin resource sharing) ```$npm install cors```.

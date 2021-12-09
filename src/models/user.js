@@ -26,17 +26,6 @@ const searchUserByName = (name) => {
   });
 };
 
-const insertUserAccess = (params) => {
-  return new Promise((resolve, reject) => {
-    const sqlQuery = `INSERT INTO user_access 
-    (user_id, username, password)
-    VALUES (?, ?, ?);`;
-    db.query(sqlQuery, params, (err, result) => {
-      modelHelp.rejectOrResolve(err, result, resolve, reject);
-    });
-  });
-};
-
 const deleteUser = (id) => {
   return new Promise((resolve, reject) => {
     const sqlQueryUA = `
@@ -51,4 +40,4 @@ const deleteUser = (id) => {
     });
   });
 };
-module.exports = {searchUserByName, insertUserAccess, deleteUser};
+module.exports = {searchUserByName, deleteUser};

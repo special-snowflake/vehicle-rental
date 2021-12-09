@@ -29,46 +29,6 @@ const checkUsername = (req, res, next) => {
   });
 };
 
-const insertUser = (req, _res, next) => {
-  const {
-    body: {
-      firstName,
-      lastName,
-      birthDate,
-      sex,
-      email,
-      phone,
-      address,
-      joinDate,
-    },
-  } = req;
-  const sql = `INSERT INTO users (
-    id, 
-    first_name, 
-    last_name, 
-    birth_date, 
-    sex,
-    email,
-    phone,
-    address,
-    join_date) 
-    VALUES (
-    0, 
-    '${firstName}',
-    '${lastName}',
-    '${birthDate}',
-    '${sex}',
-    '${email}',
-    '${phone}',
-    '${address}',
-    '${joinDate}'); `;
-  db.query(sql, (err, result) => {
-    if (err) return result.status(500).json({msg: 'Something went wrong', err});
-    req.inputResult = result;
-    return next();
-  });
-};
-
 const getDataUserForUpdate = (req, res, next) => {
   const {
     body: {id, firstName, lastName, birthDate, sex, email, phone, address},
@@ -101,4 +61,4 @@ const getDataUserForUpdate = (req, res, next) => {
   });
 };
 
-module.exports = {checkUsername, insertUser, getDataUserForUpdate};
+module.exports = {checkUsername, getDataUserForUpdate};

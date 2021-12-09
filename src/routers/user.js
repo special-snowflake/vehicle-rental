@@ -9,12 +9,12 @@ userRouter.get('/:username', controllerUser.getUserByUnsername);
 
 userRouter.get('/', controllerUser.getUserByName);
 
-userRouter.post(
-  '/',
-  middleUser.checkUsername,
-  middleUser.insertUser,
-  controllerUser.insertUserAccess
-);
+// userRouter.post(
+//   '/',
+//   middleUser.checkUsername,
+//   middleUser.insertUser,
+//   controllerUser.insertUserAccess
+// );
 
 userRouter.patch(
   '/',
