@@ -9,17 +9,18 @@ const insertUserAccess = (req, res) => {
   const {
     body: {username, password},
   } = req;
-  console.log(id + ' im here ' + username, password);
-  const sqlQuery = `INSERT INTO user_access 
-    (user_id, username, password)
-    VALUES (?, ?, ?);`;
-  db.query(sqlQuery, [id, username, password], (err, result) => {
-    if (err)
-      return res
-        .status(500)
-        .json({msg: 'Unable to insert usarname and password', err});
-    return res.status(200).json({msg: 'A New User Successfully Added', result});
-  });
+  const prepare = [id, username, password];
+  modelUser
+    .insertUserAccess(prepare)
+    .then(({status, result}) => {
+      return resHelper.success(res, status, {
+        msg: 'A New User Successfully Added',
+        id,
+      });
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {msg: 'Something went wrong', err});
+    });
 };
 
 const getUserByUnsername = (req, res) => {
@@ -123,9 +124,27 @@ const updateUser = (req, res) => {
   });
 };
 
+const deleteUser = (req, res) => {
+  const {body} = req;
+  modelUser
+    .deleteUser(body.id)
+    .then(({status, result}) => {
+      console.log('controller then', status, result);
+      return resHelper.success(res, status, {
+        msg: `User with id ${body.id} is deleted`,
+      });
+    })
+    .catch((err) => {
+      console.log('controller catch' + err);
+      resHelper.error(res, 500, {msg: 'Something went wrong', err});
+    });
+  console.log(body);
+};
+
 module.exports = {
   insertUserAccess,
   getUserByUnsername,
   updateUser,
   getUserByName,
+  deleteUser,
 };

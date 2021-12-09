@@ -22,4 +22,6 @@ userRouter.patch(
   controllerUser.updateUser
 );
 
+userRouter.delete('/', controllerUser.deleteUser);
+
 module.exports = userRouter;

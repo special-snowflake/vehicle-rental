@@ -25,4 +25,32 @@ const searchUserByName = (name) => {
   });
 };
 
-module.exports = {searchUserByName};
+const insertUserAccess = (params) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = `INSERT INTO user_access 
+    (user_id, username, password)
+    VALUES (?, ?, ?);`;
+    db.query(sqlQuery, params, (err, result) => {
+      if (err) {
+        return reject(err);
+      }
+      resolve({status: 200, result});
+    });
+  });
+};
+
+const deleteUser = (id) => {
+  return new Promise((resolve, reject) => {
+    const sqlQueryUA = `
+    DELETE FROM user_access WHERE user_id = ?`;
+    const sqlQueryUsers = `DELETE FROM users WHERE id = ?`;
+    db.query(sqlQueryUA, [id], (err, result) => {
+      if (err) return reject(err);
+      db.query(sqlQueryUsers, [id], (err, result) => {
+        if (err) return reject(err);
+        resolve({status: 200, result});
+      });
+    });
+  });
+};
+module.exports = {searchUserByName, insertUserAccess, deleteUser};

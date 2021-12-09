@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
+const helmet = require('helmet');
 const app = express();
 const router = require('./src/routers/main');
 
@@ -13,6 +14,7 @@ app.listen(port, () => {
   console.log(`Server is running in port : ${port}`);
 });
 
+app.use(helmet());
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 app.use(logger);
