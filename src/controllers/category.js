@@ -8,7 +8,10 @@ const addCategory = (req, res) => {
   categoryModel
     .modelAddCategory(category)
     .then(({status, result}) => {
-      sendResponse.success(res, status, {msg: 'New Category Added', result});
+      sendResponse.success(res, status, {
+        msg: 'New Category Added',
+        id: result.insertId,
+      });
     })
     .catch((err) => {
       sendResponse.error(res, 500, {msg: 'Something went wrong.', err});
@@ -38,7 +41,8 @@ const updateCategory = (req, res) => {
       if (status == 200) {
         sendResponse.success(res, status, {
           msg: 'Data successfully updated',
-          result,
+          category: req.body.category,
+          id: req.body.id,
         });
       }
     })

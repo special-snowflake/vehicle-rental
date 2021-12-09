@@ -41,7 +41,8 @@ const updatecity = (req, res) => {
       if (status == 200) {
         sendResponse.success(res, status, {
           msg: 'Data successfully updated',
-          result,
+          city: req.body.city,
+          id: req.body.id,
         });
       }
     })
@@ -63,7 +64,7 @@ const deletecity = (req, res) => {
       }
       sendResponse.success(res, status, {
         msg: 'Delete city success',
-        result,
+        id,
       });
     })
     .catch((err) => {

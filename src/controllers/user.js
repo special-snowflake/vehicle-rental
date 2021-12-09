@@ -67,10 +67,14 @@ const getUserByName = (req, res) => {
     .searchUserByName(name)
     .then(({status, result}) => {
       if (result.length == 0) {
-        return resHelper.success(res, status, {msg: `0 found with that name.`});
+        return resHelper.success(res, status, {
+          msg: `0 user found with that name.`,
+        });
       }
+      const msg =
+        result.length == 1 ? `1 User Found:` : `${result.length} Users Found:`;
       return resHelper.success(res, status, {
-        msg: `${result.length} User Found:`,
+        msg,
         result,
       });
     })
