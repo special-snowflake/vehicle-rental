@@ -4,25 +4,6 @@ const modelUser = require('../models/user');
 const resHelper = require('../helpers/sendResponse');
 const {grabLocalYMD} = require('../helpers/collection');
 
-// const insertUserAccess = (req, res) => {
-//   const id = req.inputResult.insertId;
-//   const {
-//     body: {username, password},
-//   } = req;
-//   const prepare = [id, username, password];
-//   modelUser
-//     .insertUserAccess(prepare)
-//     .then(({status, result}) => {
-//       return resHelper.success(res, status, {
-//         msg: 'A New User Successfully Added',
-//         id,
-//       });
-//     })
-//     .catch((err) => {
-//       resHelper.error(res, 500, {msg: 'Something went wrong', err});
-//     });
-// };
-
 const getUserByUnsername = (req, res) => {
   const {params} = req;
   const username = params.username;

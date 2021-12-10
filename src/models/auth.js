@@ -5,12 +5,14 @@ const bcrypt = require('bcrypt');
 
 const register = (body) => {
   return new Promise((resolve, reject) => {
+    console.log(body);
     let password = body.password;
     const username = body.username;
+    const roles = body.roles;
     const sqlInsertUser = `INSERT INTO users SET ?;`;
     const sqlInsertUserAccess = `INSERT INTO user_access 
-    (user_id, username, password) 
-    VALUES (?, ?, ?);`;
+    (user_id, username, password, roles) 
+    VALUES (?, ?, ?, ?);`;
     bcrypt
       .hash(body.password, 10)
       .then((hashedPassword) => {
@@ -20,9 +22,11 @@ const register = (body) => {
         };
         delete bodyUpdate.password;
         delete bodyUpdate.username;
+        delete bodyUpdate.roles;
+        console.log(bodyUpdate);
         db.query(sqlInsertUser, [bodyUpdate], (err, result) => {
           if (err) return reject(err);
-          const prepare = [result.insertId, username, password];
+          const prepare = [result.insertId, username, password, roles];
           db.query(sqlInsertUserAccess, prepare, (err, result) => {
             if (err) return reject(err);
             resolve({status: 201, result});
@@ -47,9 +51,11 @@ const login = (body) => {
       }
       const passwordHased = result[0].password;
       const payload = {
-        id: result[0].id,
+        id: result[0].user_id,
         email: result[0].email,
         name: result[0].first_name + ' ' + result[0].last_name,
+        username: result[0].username,
+        roles: result[0].roles,
       };
       bcrypt.compare(password, passwordHased, (err, res) => {
         if (err) return reject(err);

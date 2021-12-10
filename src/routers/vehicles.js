@@ -7,25 +7,29 @@ const auth = require('../middlewares/authorize');
 
 vehiclesRouter.get('/:category', controllerVehicles.getVehicles);
 vehiclesRouter.get('/', controllerVehicles.getAllVehicles);
+vehiclesRouter.get('/detail/:id', controllerVehicles.getDetailByID);
+vehiclesRouter.get('/search/', controllerVehicles.searchVehicle);
 
 vehiclesRouter.post(
   '/',
-  auth.authorize,
+  auth.authorizeAdmin,
   middleVehicles.checkInputCategory,
   middleVehicles.checkInputCity,
-  controllerVehicles.addNewVehicle,
+  controllerVehicles.addNewVehicle
 );
 
 vehiclesRouter.patch(
   '/',
+  auth.authorizeAdmin,
   middleVehicles.getDataForUpdate,
-  controllerVehicles.updateVehicle,
+  controllerVehicles.updateVehicle
 );
 
 vehiclesRouter.delete(
   '/',
+  auth.authorizeAdmin,
   middleVehicles.getDataForDelete,
-  controllerVehicles.deleteVehicle,
+  controllerVehicles.deleteVehicle
 );
 
 module.exports = vehiclesRouter;

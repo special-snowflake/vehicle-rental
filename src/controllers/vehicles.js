@@ -27,7 +27,24 @@ const getAllVehicles = (req, res) => {
     });
 };
 
-const getVehicleById = (req, res) => {};
+const getDetailByID = (req, res) => {
+  const {params} = req;
+  vehiclesModel
+    .getDetailByID(params.id)
+    .then(({status, result}) => {
+      if (result.length == 0) {
+        return resHelper.success(res, status, {
+          msg: `Vehicle with id ${params.id} cannot be found.`,
+        });
+      }
+      return resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, err);
+    });
+};
+
+const searchVehicle = (req, res) => {};
 
 const addNewVehicle = (req, res) => {
   const {
@@ -138,5 +155,6 @@ module.exports = {
   updateVehicle,
   getAllVehicles,
   deleteVehicle,
-  getVehicleById,
+  getDetailByID,
+  searchVehicle,
 };

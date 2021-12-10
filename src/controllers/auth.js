@@ -12,7 +12,7 @@ const register = (req, res) => {
     .catch((err) => {
       if (err.errno == 1062) {
         return resHelper.error(res, 409, {
-          errorMassage: 'Your email is already registered.',
+          errorMassage: 'Your email/username is already registered.',
         });
       }
       resHelper.error(res, 500, err);
@@ -27,7 +27,10 @@ const login = (req, res) => {
       resHelper.success(res, status, result);
     })
     .catch((err) => {
-      resHelper.error(res, 500, {msg: 'Login Failed', err});
+      resHelper.error(res, 500, {
+        msg: `Login Failed. Check your email/username and password.`,
+        err,
+      });
     });
 };
 

@@ -4,24 +4,19 @@ const userRouter = express.Router();
 
 const middleUser = require('../middlewares/user');
 const controllerUser = require('../controllers/user');
+const auth = require('../middlewares/authorize');
 
 userRouter.get('/:username', controllerUser.getUserByUnsername);
 
 userRouter.get('/', controllerUser.getUserByName);
 
-// userRouter.post(
-//   '/',
-//   middleUser.checkUsername,
-//   middleUser.insertUser,
-//   controllerUser.insertUserAccess
-// );
-
 userRouter.patch(
   '/',
+  auth.authorizeAllUser,
   middleUser.getDataUserForUpdate,
   controllerUser.updateUser
 );
 
-userRouter.delete('/', controllerUser.deleteUser);
+userRouter.delete('/', auth.authorizeAdmin, controllerUser.deleteUser);
 
 module.exports = userRouter;

@@ -141,9 +141,13 @@ const getDataForUpdate = (id) => {
   });
 };
 
-const getVehiclesById = (id) => {
+const getDetailByID = (id) => {
   return new Promise((resolve, reject) => {
-    const sqlQuery = `SELECT * FROM vehiclse WHERE id = ?`;
+    const sqlQuery = `SELECT v.id, ct.category, v.brand, v.model,
+     v.capacity, v.price, v.status, c.city  
+    FROM vehicles v JOIN city c ON c.id = v.city_id 
+    JOIN category ct ON ct.id = v.category_id 
+    WHERE v.id = ?`;
     db.query(sqlQuery, [id], (err, result) => {
       modelHelp.rejectOrResolve(err, result, resolve, reject);
     });
@@ -220,5 +224,5 @@ module.exports = {
   checkInputCategory,
   checkInputCity,
   getDataForUpdate,
-  getVehiclesById,
+  getDetailByID,
 };

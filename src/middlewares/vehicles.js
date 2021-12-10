@@ -47,10 +47,10 @@ const getDataForUpdate = (req, res, next) => {
   const sqlQuery = `SELECT * FROM vehicles WHERE id = ?`;
   db.query(sqlQuery, [id], (err, result) => {
     if (err) {
-      return resHelper.error(res, 500, {msg: 'Something went wrong', err});
+      return resHelper.error(res, 500, {msg: 'Something went wrong.', err});
     }
     if (result.length === 0) {
-      return resHelper.success(res, status, {msg: 'Id is unidetified'});
+      return resHelper.success(res, status, {msg: 'Id is unidentified.'});
     }
     const bodyUpdate = [];
     bodyUpdate[0] = result[0];
@@ -74,12 +74,12 @@ const getDataForDelete = (req, res, next) => {
   const sqlQuery = `SELECT * FROM history where vehicle_id = ?`;
   db.query(sqlQuery, [id], (err, result) => {
     if (err) {
-      return res.status(500).json({msg: 'Something went wrong', err});
+      return res.status(500).json({msg: 'Something went wrong.', err});
     }
     if (result.length !== 0) {
       return res
         .status(200)
-        .json({msg: 'Cannot delete vehicle, data is being used in history'});
+        .json({msg: 'Cannot delete vehicle, data is being used in history.'});
     }
     next();
   });
