@@ -15,7 +15,6 @@ const register = (body) => {
       .hash(body.password, 10)
       .then((hashedPassword) => {
         password = hashedPassword;
-        console.log(password);
         const bodyUpdate = {
           ...body,
         };
@@ -39,11 +38,6 @@ const register = (body) => {
 const login = (body) => {
   return new Promise((resolve, reject) => {
     const {user, password} = body;
-    const sqlLogin = `SELECT * FROM user_access ua 
-    JOIN users u ON u.id = ua.user_id
-    WHERE ua.password = ? AND 
-    (ua.username = ? OR u.email = ?;
-    `;
     const sqlGetPassword = `SELECT * FROM user_access ua 
     JOIN users u ON u.id = ua.user_id
     WHERE ua.username = ? OR u.email = ?`;

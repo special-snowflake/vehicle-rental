@@ -1,5 +1,5 @@
-const resHelper = require('../helpers/sendResponse');
 const vehiclesModel = require('../models/vehicles');
+const resHelper = require('../helpers/sendResponse');
 
 const getVehicles = (req, res) => {
   const {params} = req;
@@ -14,11 +14,8 @@ const getVehicles = (req, res) => {
 };
 
 const getAllVehicles = (req, res) => {
-  const {
-    query: {orderBy, sort, id},
-  } = req;
   vehiclesModel
-    .getAllVehicles(orderBy, sort)
+    .getAllVehicles(req.query)
     .then(({status, result}) => {
       return resHelper.success(res, status, result);
     })
@@ -30,9 +27,7 @@ const getAllVehicles = (req, res) => {
     });
 };
 
-const getVehicleById = (req, res) => {
-
-};
+const getVehicleById = (req, res) => {};
 
 const addNewVehicle = (req, res) => {
   const {

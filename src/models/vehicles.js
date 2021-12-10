@@ -53,28 +53,81 @@ const getVehicles = (category) => {
   });
 };
 
-const getAllVehicles = (orderBy, sort) => {
+const getAllVehicles = (query) => {
   return new Promise((resolve, reject) => {
-    let sqlQuery = `SELECT 
-  v.id, c.city, ct.category, v.model, v.brand, 
-  v.capacity, v.price FROM vehicles v
-  JOIN city c ON v.city_id = c.id
-  JOIN category ct ON v.category_id = ct.id`;
+    let {orderBy, sort, limit, page} = query;
+    let offset = '';
+    const sqlCount = `SELECT count(*) count FROM vehicles`;
+    const sqlShowData = `SELECT 
+    v.id, c.city, ct.category, v.model, v.brand, 
+    v.capacity, v.price FROM vehicles v
+    JOIN city c ON v.city_id = c.id
+    JOIN category ct ON v.category_id = ct.id
+    ORDER BY  ? ?
+    LIMIT ?,?`;
     if (orderBy !== '' && typeof orderBy !== 'undefined') {
       if (typeof sort !== 'undefined') {
         sort = sort.toLocaleLowerCase() === 'desc' ? ' DESC' : ' ASC';
       } else {
         sort = ' ASC';
       }
-      sqlQuery = `SELECT 
-    v.id, c.city, ct.category, v.model, v.brand, 
-    v.capacity, v.price FROM vehicles v
-    JOIN city c ON v.city_id = c.id
-    JOIN category ct ON v.category_id = ct.id
-    ORDER BY  ? ?`;
+    } else {
+      orderBy = 'v.id';
+      sort = ' ASC';
     }
-    db.query(sqlQuery, [mysql.raw(orderBy), mysql.raw(sort)], (err, result) => {
-      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    if (!limit) {
+      limit = '5';
+    }
+    if (!page) {
+      page = '1';
+      offset = 0;
+    } else {
+      offset = (+page - 1) * +limit;
+    }
+    const prepare = [
+      mysql.raw(orderBy),
+      mysql.raw(sort),
+      offset,
+      mysql.raw(limit),
+    ];
+    db.query(sqlCount, (err, result) => {
+      if (err) reject(err);
+      const count = result[0].count;
+      const sortSpliced = sort.slice(1, sort.length);
+      const nextOffset = +offset + +limit;
+      const nPage = nextOffset > count ? null : +page + 1;
+      const pPage = page > 1 ? +page - 1 : null;
+      const nextPage =
+        nPage != null ?
+          '/vehicles?orderBy=' +
+            orderBy +
+            '&&sort=' +
+            sortSpliced +
+            '&&limit=' +
+            limit +
+            '&&page=' +
+            nPage :
+          null;
+      const previousPage =
+        pPage != null ?
+          '/vehicles?orderBy=' +
+            orderBy +
+            '&&sort=' +
+            sortSpliced +
+            '&&limit=' +
+            limit +
+            '&&page=' +
+            pPage :
+          null;
+      db.query(sqlShowData, prepare, (err, result) => {
+        if (err) return reject(err);
+        modelHelp.rejectOrResolve(
+          err,
+          {previousPage, page, nextPage, result},
+          resolve,
+          reject,
+        );
+      });
     });
   });
 };
