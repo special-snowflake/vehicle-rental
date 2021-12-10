@@ -3,17 +3,6 @@ const resHelper = require('../helpers/sendResponse');
 
 const register = (req, res) => {
   const {body} = req;
-//   const prepare = [
-//     body.first_name,
-//     body.last_name,
-//     body.birth_date,
-//     body.sex,
-//     body.email,
-//     body.phone,
-//     body.address,
-//     body.join_date,
-//   ];
-//   const password=body.pass
   authModel
     .register(req.body)
     .then(({status}) => {
@@ -30,4 +19,16 @@ const register = (req, res) => {
     });
 };
 
-module.exports = {register};
+const login = (req, res) => {
+  const {body} = req;
+  authModel
+    .login(body)
+    .then(({status, result}) => {
+      resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {msg: 'Login Failed', err});
+    });
+};
+
+module.exports = {register, login};
