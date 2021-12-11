@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
+const fs = require('fs');
 
 const searchUserByName = (name) => {
   console.log(name);
@@ -50,4 +51,37 @@ const uploadProfilePicture = (id, filename) => {
   });
 };
 
-module.exports = {searchUserByName, deleteUser, uploadProfilePicture};
+const updateProfilePicture = (id, filename) => {
+  return new Promise((resolve, reject) => {
+    const sqlGetPrevPhoto = `SELECT photo from users where id = ?`;
+    db.query(sqlGetPrevPhoto, [id], (err, result) => {
+      if (err) return reject(err);
+      if (result.length == 0) {
+        return resolve({
+          status: 401,
+          result: {msg: 'Please upload before updating'},
+        });
+      }
+      const photo = result[0].photo;
+      db.query(sqlUploadPhoto, [filename, id], (err, result) => {
+        fs.unlink(`../vehicle-rental/src/media/images/${photo}`, (err) => {
+          if (err) {
+            resolve({
+              staus: 200,
+              result: {msg: 'Error occur while deleting old photo.', err},
+            });
+          }
+        });
+        modelHelp.rejectOrResolve(err, result, resolve, reject);
+      });
+    });
+    const sqlUploadPhoto = `UPDATE users SET photo = ? WHERE id = ?`;
+  });
+};
+
+module.exports = {
+  searchUserByName,
+  deleteUser,
+  uploadProfilePicture,
+  updateProfilePicture,
+};

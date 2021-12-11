@@ -9,11 +9,19 @@ const controllerUser = require('../controllers/user');
 
 userRouter.get('/:username', controllerUser.getUserByUnsername);
 userRouter.get('/', controllerUser.getUserByName);
+
 userRouter.post(
   '/photo',
   auth.authorizeAllUser,
   upload.single('profilePicture'),
   controllerUser.uploadProfilePicture
+);
+
+userRouter.patch(
+  '/photo',
+  auth.authorizeAllUser,
+  upload.single('profilePicture'),
+  controllerUser.updateProfilePicture
 );
 
 userRouter.patch(

@@ -59,20 +59,20 @@ const login = (body) => {
         });
       }
       const passwordHased = result[0].password;
-      const payload = {
-        id: result[0].user_id,
-        email: result[0].email,
-        name: result[0].first_name + ' ' + result[0].last_name,
-        username: result[0].username,
-        roles: result[0].roles,
-      };
       bcrypt.compare(password, passwordHased, (err, res) => {
         if (err) return reject(err);
         if (!res) {
           return reject(err);
         }
+        const payload = {
+          id: result[0].user_id,
+          email: result[0].email,
+          username: result[0].username,
+          name: result[0].first_name + ' ' + result[0].last_name,
+          roles: result[0].roles,
+        };
         const jwtOptions = {
-          expiresIn: '10m',
+          expiresIn: '15m',
           issuer: process.env.ISSUER,
         };
         jwt.sign(payload, process.env.SECRET_KEY, jwtOptions, (err, token) => {
@@ -84,4 +84,14 @@ const login = (body) => {
   });
 };
 
-module.exports = {register, login};
+const logout = (token) => {
+  return new Promise((resolve, reject) => {
+    const sqlAddBlacklist = `INSERT INTO blacklist_token (token) values(?)`;
+    db.query(sqlAddBlacklist, [token], (err, result) => {
+      if (err) return reject(err);
+      resolve({status: 200, result: {msg: 'Logout success.'}});
+    });
+  });
+};
+
+module.exports = {register, login, logout};

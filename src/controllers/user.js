@@ -29,6 +29,33 @@ const uploadProfilePicture = (req, res) => {
     });
 };
 
+const updateProfilePicture = (req, res) => {
+  if (!req.isPassFilter) {
+    return resHelper.success(res, 422, {
+      result: {
+        msg: 'File should be an image in either format (png, jpg, jpeg)',
+      },
+    });
+  }
+  const {payload, file} = req;
+  const id = payload.id;
+  const filename = file.filename;
+  modelUser
+    .updateProfilePicture(id, filename)
+    .then(({status}) => {
+      return resHelper.success(res, status, {
+        msg: 'Update photo profile success.',
+        result: {
+          id,
+          filename,
+        },
+      });
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {errorMsg: 'Error while updating.', err});
+    });
+};
+
 const getUserByUnsername = (req, res) => {
   const {params} = req;
   const username = params.username;
@@ -139,4 +166,5 @@ module.exports = {
   getUserByName,
   deleteUser,
   uploadProfilePicture,
+  updateProfilePicture,
 };
