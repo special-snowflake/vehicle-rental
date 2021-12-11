@@ -14,6 +14,7 @@ const getVehicles = (req, res) => {
 };
 
 const getAllVehicles = (req, res) => {
+  console.log(req.payload);
   vehiclesModel
     .getAllVehicles(req.query)
     .then(({status, result}) => {

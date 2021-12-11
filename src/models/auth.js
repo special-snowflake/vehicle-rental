@@ -49,6 +49,15 @@ const login = (body) => {
       if (err) {
         return reject(err);
       }
+      if (result.length == 0) {
+        console.log(result);
+        return resolve({
+          status: 401,
+          result: {
+            msg: 'Login Failed. Check your email/username and password.',
+          },
+        });
+      }
       const passwordHased = result[0].password;
       const payload = {
         id: result[0].user_id,
@@ -63,7 +72,7 @@ const login = (body) => {
           return reject(err);
         }
         const jwtOptions = {
-          expiresIn: '1m',
+          expiresIn: '10m',
           issuer: process.env.ISSUER,
         };
         jwt.sign(payload, process.env.SECRET_KEY, jwtOptions, (err, token) => {
@@ -74,4 +83,5 @@ const login = (body) => {
     });
   });
 };
+
 module.exports = {register, login};

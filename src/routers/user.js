@@ -1,14 +1,20 @@
 const express = require('express');
 
 const userRouter = express.Router();
+const upload = require('../middlewares/upload');
 
+const auth = require('../middlewares/authorize');
 const middleUser = require('../middlewares/user');
 const controllerUser = require('../controllers/user');
-const auth = require('../middlewares/authorize');
 
 userRouter.get('/:username', controllerUser.getUserByUnsername);
-
 userRouter.get('/', controllerUser.getUserByName);
+userRouter.post(
+  '/photo',
+  auth.authorizeAllUser,
+  upload.single('profilePicture'),
+  controllerUser.uploadProfilePicture
+);
 
 userRouter.patch(
   '/',

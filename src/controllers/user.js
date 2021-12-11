@@ -4,6 +4,31 @@ const modelUser = require('../models/user');
 const resHelper = require('../helpers/sendResponse');
 const {grabLocalYMD} = require('../helpers/collection');
 
+const uploadProfilePicture = (req, res) => {
+  if (!req.isPassFilter) {
+    return resHelper.success(res, 422, {
+      result: {
+        msg: 'File should be an image in either format (png, jpg, jpeg)',
+      },
+    });
+  }
+  const {payload, file} = req;
+  const id = payload.id;
+  const filename = file.filename;
+  modelUser
+    .uploadProfilePicture(id, filename)
+    .then(({status}) => {
+      return resHelper.success(res, status, {
+        msg: 'Upload photo profile success.',
+        id,
+        filename,
+      });
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {errorMsg: 'Error while uploading.', err});
+    });
+};
+
 const getUserByUnsername = (req, res) => {
   const {params} = req;
   const username = params.username;
@@ -11,7 +36,7 @@ const getUserByUnsername = (req, res) => {
       a.username, 
       u.first_name, 
       u.last_name, 
-      u.birth_date, 
+      u.bod, 
       u.sex, 
       u.email, 
       u.email, 
@@ -26,14 +51,14 @@ const getUserByUnsername = (req, res) => {
     if (result.length == 0) {
       return res.status(404).json({msg: `User cannot be found`});
     }
-    const birth_date = result[0].birth_date,
+    const bod = result[0].bod,
       join_date = result[0].join_date;
     const sex =
       result[0].sex == 'M' ? 'Male' : result[0].sex == 'F' ? 'Female' : '';
     let searchResult = result;
     searchResult = {
       ...searchResult[0],
-      birth_date: grabLocalYMD(birth_date),
+      bod: grabLocalYMD(bod),
       join_date: grabLocalYMD(join_date),
       sex,
     };
@@ -66,31 +91,13 @@ const getUserByName = (req, res) => {
 
 const updateUser = (req, res) => {
   const {
-    bodyUpdate: {
-      id,
-      first_name,
-      last_name,
-      birth_date,
-      sex,
-      email,
-      phone,
-      address,
-    },
+    bodyUpdate: {id, first_name, last_name, bod, sex, email, phone, address},
   } = req;
-  const params = [
-    first_name,
-    last_name,
-    birth_date,
-    sex,
-    email,
-    phone,
-    address,
-    id,
-  ];
+  const params = [first_name, last_name, bod, sex, email, phone, address, id];
   const sqlQuery = `UPDATE users SET 
       first_name = ?,
       last_name = ?,
-      birth_date = ?,
+      bod = ?,
       sex = ?,
       email = ?,
       phone = ?,
@@ -131,4 +138,5 @@ module.exports = {
   updateUser,
   getUserByName,
   deleteUser,
+  uploadProfilePicture,
 };

@@ -31,7 +31,7 @@ const checkUsername = (req, res, next) => {
 
 const getDataUserForUpdate = (req, res, next) => {
   const {
-    body: {id, firstName, lastName, birthDate, sex, email, phone, address},
+    body: {id, firstName, lastName, bod, sex, email, phone, address},
   } = req;
   const sqlQuery = `SELECT * FROM users WHERE id = ?`;
   db.query(sqlQuery, [id], (err, result) => {
@@ -50,7 +50,7 @@ const getDataUserForUpdate = (req, res, next) => {
     bodyUpdate[0] = result[0];
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'first_name', firstName);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'last_name', lastName);
-    bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'birth_date', birthDate);
+    bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'bod', bod);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'sex', sex);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'email', email);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'phone', phone);

@@ -40,4 +40,14 @@ const deleteUser = (id) => {
     });
   });
 };
-module.exports = {searchUserByName, deleteUser};
+
+const uploadProfilePicture = (id, filename) => {
+  return new Promise((resolve, reject) => {
+    const sqlUploadPhoto = `UPDATE users SET photo = ? WHERE id = ?`;
+    db.query(sqlUploadPhoto, [filename, id], (err, result) => {
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    });
+  });
+};
+
+module.exports = {searchUserByName, deleteUser, uploadProfilePicture};
