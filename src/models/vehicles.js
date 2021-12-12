@@ -1,3 +1,4 @@
+const {reject} = require('bcrypt/promises');
 const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
@@ -98,34 +99,34 @@ const getAllVehicles = (query) => {
       const nPage = nextOffset > count ? null : +page + 1;
       const pPage = page > 1 ? +page - 1 : null;
       const nextPage =
-        nPage != null ?
-          '/vehicles?orderBy=' +
+        nPage != null
+          ? '/vehicles?orderBy=' +
             orderBy +
             '&&sort=' +
             sortSpliced +
             '&&limit=' +
             limit +
             '&&page=' +
-            nPage :
-          null;
+            nPage
+          : null;
       const previousPage =
-        pPage != null ?
-          '/vehicles?orderBy=' +
+        pPage != null
+          ? '/vehicles?orderBy=' +
             orderBy +
             '&&sort=' +
             sortSpliced +
             '&&limit=' +
             limit +
             '&&page=' +
-            pPage :
-          null;
+            pPage
+          : null;
       db.query(sqlShowData, prepare, (err, result) => {
         if (err) return reject(err);
         modelHelp.rejectOrResolve(
           err,
           {previousPage, page, nextPage, result},
           resolve,
-          reject,
+          reject
         );
       });
     });
@@ -149,6 +150,34 @@ const getDetailByID = (id) => {
     JOIN category ct ON ct.id = v.category_id 
     WHERE v.id = ?`;
     db.query(sqlQuery, [id], (err, result) => {
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    });
+  });
+};
+
+const searchVehicles = (query) => {
+  return new Promise((resolve, reject) => {
+    console.log(query);
+    let {
+      cityId,
+      categorId,
+      brand,
+      model,
+      minCapacity,
+    } = query;
+    cityId = cityId == '' || !cityId ? '%%' : `%${cityId}%`;
+    categorId = categorId == '' || !categorId ? '%%' : `%${categorId}%`;
+    brand = brand == '' || !brand ? '%%' : `%${brand}%`;
+    model = model == '' || !model ? '%%' : `%${model}%`;
+    minCapacity = minCapacity == '' || !minCapacity ? '1' : minCapacity;
+    const prepare = [cityId, categorId, brand, model, minCapacity];
+    const sqlSearch = `SELECT v.id, v.model, v. brand, 
+    v.stock, c.city, ct.category, v.price, v.capacity
+    FROM vehicles v JOIN city c ON v.city_id = c.id
+    JOIN category ct ON v.category_id = ct.id
+    WHERE v.city_id LIKE ? and v.category_id LIKE ? 
+    and v.brand LIKE ? and v.model LIKE ? and v.capacity >= ? `;
+    db.query(sqlSearch, prepare, (err, result) => {
       modelHelp.rejectOrResolve(err, result, resolve, reject);
     });
   });
@@ -225,4 +254,5 @@ module.exports = {
   checkInputCity,
   getDataForUpdate,
   getDetailByID,
+  searchVehicles,
 };

@@ -5,10 +5,12 @@ const controllerVehicles = require('../controllers/vehicles');
 const middleVehicles = require('../middlewares/vehicles');
 const auth = require('../middlewares/authorize');
 
-vehiclesRouter.get('/:category', controllerVehicles.getVehicles);
 vehiclesRouter.get('/', controllerVehicles.getAllVehicles);
+vehiclesRouter.get('popular/:category', controllerVehicles.getVehicles);
+
+vehiclesRouter.get('/search', controllerVehicles.searchVehicles);
+
 vehiclesRouter.get('/detail/:id', controllerVehicles.getDetailByID);
-vehiclesRouter.get('/search/', controllerVehicles.searchVehicle);
 
 vehiclesRouter.post(
   '/',

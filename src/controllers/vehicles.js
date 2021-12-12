@@ -29,6 +29,7 @@ const getAllVehicles = (req, res) => {
 };
 
 const getDetailByID = (req, res) => {
+  console.log('something');
   const {params} = req;
   vehiclesModel
     .getDetailByID(params.id)
@@ -45,7 +46,17 @@ const getDetailByID = (req, res) => {
     });
 };
 
-const searchVehicle = (req, res) => {};
+const searchVehicles = (req, res) => {
+  const {query} = req;
+  vehiclesModel
+    .searchVehicles(query)
+    .then(({status, result}) => {
+      resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, err);
+    });
+};
 
 const addNewVehicle = (req, res) => {
   const {
@@ -157,5 +168,5 @@ module.exports = {
   getAllVehicles,
   deleteVehicle,
   getDetailByID,
-  searchVehicle,
+  searchVehicles,
 };

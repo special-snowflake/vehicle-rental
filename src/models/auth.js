@@ -87,7 +87,7 @@ const login = (body) => {
 const logout = (token) => {
   return new Promise((resolve, reject) => {
     const sqlAddBlacklist = `INSERT INTO blacklist_token (token) values(?)`;
-    db.query(sqlAddBlacklist, [token], (err, result) => {
+    db.query(sqlAddBlacklist, [token], (err) => {
       if (err) return reject(err);
       resolve({status: 200, result: {msg: 'Logout success.'}});
     });
