@@ -27,6 +27,7 @@ userRouter.patch(
 userRouter.patch(
   '/',
   auth.authorizeAllUser,
+  upload,
   middleUser.getDataUserForUpdate,
   controllerUser.updateUser
 );

@@ -2,6 +2,7 @@ const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
 const fs = require('fs');
+const {reject} = require('bcrypt/promises');
 
 const searchUserByName = (name) => {
   return new Promise((resolve, reject) => {
@@ -107,10 +108,20 @@ const getUserPhoto = (id) => {
   });
 };
 
+const updateUser = (body, id) => {
+  return new Promise((resolve, reject) => {
+    const sqlUpdate = `UPDATE users set ? WHERE id = ?`;
+    db.query(sqlUpdate, [body, id], (err, result) => {
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    });
+  });
+};
+
 module.exports = {
   searchUserByName,
   deleteUser,
   uploadProfilePicture,
   updateProfilePicture,
   getUserPhoto,
+  updateUser,
 };

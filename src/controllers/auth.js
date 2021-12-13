@@ -21,7 +21,7 @@ const register = (req, res) => {
     .catch((err) => {
       fs.unlink(`../vehicle-rental/src/media/images/${photo}`, (err) => {
         if (err) {
-          resolve({
+          return resolve({
             staus: 200,
             result: {msg: 'Error occur while deleting photo.', err},
           });

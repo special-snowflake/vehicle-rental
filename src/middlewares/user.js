@@ -1,6 +1,6 @@
 const mysql = require('mysql');
 const db = require('../config/db');
-
+const fs = require('fs');
 const {
   checkingPatchWithData,
   checkingPatchDate,
@@ -30,10 +30,16 @@ const checkUsername = (req, res, next) => {
 };
 
 const getDataUserForUpdate = (req, res, next) => {
+  const {payload, file} = req;
+  const id = payload.id;
   const {
-    body: {id, firstName, lastName, bod, sex, email, phone, address},
+    body: {firstName, lastName, bod, sex, email, phone, address},
   } = req;
-  const sqlQuery = `SELECT * FROM users WHERE id = ?`;
+  console.log('[db middleware user file]:', typeof file, file);
+  // console.log('[db] user middle update photo:', photo);
+  const sqlQuery = `SELECT first_name, 
+  last_name, bod, sex, email, phone, address, 
+  photo FROM users WHERE id = ?`;
   db.query(sqlQuery, [id], (err, result) => {
     if (err) {
       return res.status(500).json({
@@ -46,8 +52,9 @@ const getDataUserForUpdate = (req, res, next) => {
         msg: 'Id is unidentified.',
       });
     }
-    const bodyUpdate = [];
+    let bodyUpdate = [];
     bodyUpdate[0] = result[0];
+    console.log('[db] unupdated :', bodyUpdate);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'first_name', firstName);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'last_name', lastName);
     bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'bod', bod);
@@ -55,7 +62,28 @@ const getDataUserForUpdate = (req, res, next) => {
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'email', email);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'phone', phone);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'address', address);
-    console.log(bodyUpdate);
+    let photo = null;
+    if (file !== undefined) {
+      console.log('wyhy am i here');
+      photo = file.filename;
+    }
+    if (photo !== null) {
+      console.log('photo not null', photo);
+      const oldPhoto = bodyUpdate[0].photo;
+      fs.unlink(`../vehicle-rental/src/media/images/${oldPhoto}`, (err) => {
+        if (err) {
+          return resolve({
+            staus: 200,
+            result: {msg: 'Error occur while deleting photo.', err},
+          });
+        }
+      });
+      bodyUpdate[0] = {
+        ...bodyUpdate[0],
+        photo,
+      };
+    }
+    console.log('[db] middleware bodyUpdate :', bodyUpdate);
     req.bodyUpdate = bodyUpdate[0];
     next();
   });

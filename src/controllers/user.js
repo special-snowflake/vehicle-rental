@@ -118,31 +118,52 @@ const getUserByName = (req, res) => {
 };
 
 const updateUser = (req, res) => {
-  const {
-    bodyUpdate: {id, first_name, last_name, bod, sex, email, phone, address},
-  } = req;
-  const params = [first_name, last_name, bod, sex, email, phone, address, id];
-  const sqlQuery = `UPDATE users SET 
-      first_name = ?,
-      last_name = ?,
-      bod = ?,
-      sex = ?,
-      email = ?,
-      phone = ?,
-      address = ?
-      WHERE id = ?;`;
-  db.query(sqlQuery, params, (err, result) => {
-    if (err)
-      return res.status(500).json({
-        msg: 'Something went wrong.',
-        err,
-      });
-    return res.status(200).json({
-      msg: 'Data successfully updated.',
-      newData: req.bodyUpdate,
+  const {bodyUpdate, isPassFilter, payload} = req;
+  console.log('[db] ctrl updt usr photo:', bodyUpdate);
+  if (!isPassFilter && req.file) {
+    return resHelper.success(res, 422, {
+      result: {
+        msg: 'File should be an image in either format (png, jpg, jpeg)',
+      },
     });
-  });
+  }
+  const id = payload.id;
+  modelUser
+    .updateUser(bodyUpdate, id)
+    .then(({status, result}) => {
+      return resHelper.success(res, status, {result: {bodyUpdate, id}});
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, err);
+    });
 };
+
+// const updateUser = (req, res) => {
+//   const {
+//     bodyUpdate: {id, first_name, last_name, bod, sex, email, phone, address},
+//   } = req;
+//   const params = [first_name, last_name, bod, sex, email, phone, address, id];
+//   const sqlQuery = `UPDATE users SET
+//       first_name = ?,
+//       last_name = ?,
+//       bod = ?,
+//       sex = ?,
+//       email = ?,
+//       phone = ?,
+//       address = ?
+//       WHERE id = ?;`;
+//   db.query(sqlQuery, params, (err, result) => {
+//     if (err)
+//       return res.status(500).json({
+//         msg: 'Something went wrong.',
+//         err,
+//       });
+//     return res.status(200).json({
+//       msg: 'Data successfully updated.',
+//       newData: req.bodyUpdate,
+//     });
+//   });
+// };
 
 const deleteUser = (req, res) => {
   const {body} = req;
