@@ -13,14 +13,14 @@ userRouter.get('/', controllerUser.getUserByName);
 userRouter.post(
   '/photo',
   auth.authorizeAllUser,
-  upload.single('profilePicture'),
+  upload,
   controllerUser.uploadProfilePicture
 );
 
 userRouter.patch(
   '/photo',
   auth.authorizeAllUser,
-  upload.single('profilePicture'),
+  upload,
   controllerUser.updateProfilePicture
 );
 
