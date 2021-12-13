@@ -35,15 +35,6 @@ const multerOption = {
 const upload = multer(multerOption).single('profilePicture');
 
 const multerHandler = (req, res, next) => {
-  file = req.file;
-  console.log('[db] multer handler', file);
-  // // console.log('req:', req);
-  // if (typeof file === 'undefined') {
-  //   console.log('file multer handler');
-  //   req.isPassFilter = true;
-  //   // req.file = {filename: null};
-  //   return next();
-  // }
   upload(req, res, (err) => {
     if (err && err.code === 'LIMIT_FILE_SIZE') {
       return res

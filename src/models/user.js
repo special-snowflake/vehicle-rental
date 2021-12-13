@@ -2,7 +2,6 @@ const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
 const fs = require('fs');
-const {reject} = require('bcrypt/promises');
 
 const searchUserByName = (name) => {
   return new Promise((resolve, reject) => {

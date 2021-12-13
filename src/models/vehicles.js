@@ -156,23 +156,119 @@ const getDetailByID = (id) => {
 
 const searchVehicles = (query) => {
   return new Promise((resolve, reject) => {
-    console.log(query);
-    let {cityId, categorId, brand, model, minCapacity} = query;
+    let {
+      cityId,
+      categorId,
+      brand,
+      model,
+      minCapacity,
+      orderBy,
+      sort,
+      limit,
+      page,
+    } = query;
+    console.log('[db] sc vehicle inside query', query);
+    let offset = '';
+    if (orderBy !== '' && typeof orderBy !== 'undefined') {
+      if (typeof sort !== 'undefined') {
+        sort = sort.toLocaleLowerCase() === 'desc' ? ' DESC' : ' ASC';
+      } else {
+        sort = ' ASC';
+      }
+    } else {
+      orderBy = 'v.id';
+      sort = ' ASC';
+    }
+    if (!limit) {
+      limit = '5';
+    }
+    if (!page) {
+      page = '1';
+      offset = 0;
+    } else {
+      offset = (+page - 1) * +limit;
+    }
+    console.log('[db check after me]');
     cityId = cityId == '' || !cityId ? '%%' : `%${cityId}%`;
     categorId = categorId == '' || !categorId ? '%%' : `%${categorId}%`;
     brand = brand == '' || !brand ? '%%' : `%${brand}%`;
     model = model == '' || !model ? '%%' : `%${model}%`;
     minCapacity = minCapacity == '' || !minCapacity ? '1' : minCapacity;
-    const prepare = [cityId, categorId, brand, model, minCapacity];
-    const sqlSearch = `SELECT v.id, v.model, v. brand, 
-    v.stock, c.city, ct.category, v.price, v.capacity
+    const prepare = [
+      cityId,
+      categorId,
+      brand,
+      model,
+      minCapacity,
+      mysql.raw(orderBy),
+      mysql.raw(sort),
+      offset,
+      mysql.raw(limit),
+    ];
+    const sqlCount = `SELECT count(*) count 
     FROM vehicles v JOIN city c ON v.city_id = c.id
     JOIN category ct ON v.category_id = ct.id
     WHERE v.city_id LIKE ? and v.category_id LIKE ? 
     and v.brand LIKE ? and v.model LIKE ? and v.capacity >= ? `;
-    db.query(sqlSearch, prepare, (err, result) => {
-      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    db.query(sqlCount, prepare, (err, result) => {
+      console.log('inside sql count');
+      if (err) reject(err);
+      const count = result[0].count;
+      const sortSpliced = sort.slice(1, sort.length);
+      const nextOffset = +offset + +limit;
+      const nPage = nextOffset > count ? null : +page + 1;
+      const pPage = page > 1 ? +page - 1 : null;
+      console.log(
+        '[db] npage, ppage, noffset, count:  ',
+        nPage,
+        pPage,
+        nextOffset,
+        count
+      );
+      const nextPage =
+        nPage != null
+          ? '/vehicles?orderBy=' +
+            orderBy +
+            '&&sort=' +
+            sortSpliced +
+            '&&limit=' +
+            limit +
+            '&&page=' +
+            nPage
+          : null;
+      const previousPage =
+        pPage != null
+          ? '/vehicles?orderBy=' +
+            orderBy +
+            '&&sort=' +
+            sortSpliced +
+            '&&limit=' +
+            limit +
+            '&&page=' +
+            pPage
+          : null;
+      const sqlSearch = `SELECT v.id, v.model, v. brand, 
+          v.stock, c.city, ct.category, v.price, v.capacity
+          FROM vehicles v JOIN city c ON v.city_id = c.id
+          JOIN category ct ON v.category_id = ct.id
+          WHERE v.city_id LIKE ? and v.category_id LIKE ? 
+          and v.brand LIKE ? and v.model LIKE ? and v.capacity >= ? 
+          ORDER BY ? ?
+          LIMIT ?, ?;`;
+      db.query(sqlSearch, prepare, (err, result) => {
+        if (err) return reject(err);
+        modelHelp.rejectOrResolve(
+          err,
+          {previousPage, page, nextPage, result},
+          resolve,
+          reject
+        );
+      });
     });
+
+    // db.query(sqlSearch, prepare, (err, result) => {
+    //   modelHelp.rejectOrResolve(err, result, resolve, reject);
+    // });
   });
 };
 
