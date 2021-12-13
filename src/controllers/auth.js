@@ -1,16 +1,32 @@
 const authModel = require('../models/auth');
 const resHelper = require('../helpers/sendResponse');
-const db = require('../config/db');
+const fs = require('fs');
 
 const register = (req, res) => {
-  const {body} = req;
+  const {body, isPassFilter, file} = req;
+  photo = file.filename;
+  if (!isPassFilter) {
+    return resHelper.success(res, 422, {
+      result: {
+        msg: 'File should be an image in either format (png, jpg, jpeg)',
+      },
+    });
+  }
   authModel
-    .register(req.body)
+    .register(req.body, photo)
     .then(({status}) => {
       delete body.password;
       resHelper.success(res, status, {msg: 'Registration complete.', body});
     })
     .catch((err) => {
+      fs.unlink(`../vehicle-rental/src/media/images/${photo}`, (err) => {
+        if (err) {
+          resolve({
+            staus: 200,
+            result: {msg: 'Error occur while deleting photo.', err},
+          });
+        }
+      });
       if (err.errno == 1062) {
         return resHelper.error(res, 409, {
           errorMassage: 'Your email/username is already registered.',
@@ -37,7 +53,6 @@ const login = (req, res) => {
 
 const logout = (req, res) => {
   const token = req.header('x-authorized-token');
-  console.log('[DB] token: ', token);
   authModel
     .logout(token)
     .then(({status, result}) => {

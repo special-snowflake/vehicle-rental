@@ -17,7 +17,8 @@ const uploadProfilePicture = (req, res) => {
   const filename = file.filename;
   modelUser
     .uploadProfilePicture(id, filename)
-    .then(({status}) => {
+    .then(({status, result}) => {
+      if (status == 403) return resHelper.success(res, status, result);
       return resHelper.success(res, status, {
         msg: 'Upload photo profile success.',
         id,

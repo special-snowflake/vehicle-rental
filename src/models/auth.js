@@ -3,9 +3,8 @@ const db = require('../config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-const register = (body) => {
+const register = (body, photo) => {
   return new Promise((resolve, reject) => {
-    console.log(body);
     let password = body.password;
     const username = body.username;
     const roles = body.roles;
@@ -17,13 +16,27 @@ const register = (body) => {
       .hash(body.password, 10)
       .then((hashedPassword) => {
         password = hashedPassword;
+        const {
+          first_name,
+          last_name,
+          bod,
+          sex,
+          email,
+          phone,
+          address,
+          join_date,
+        } = body;
         const bodyUpdate = {
-          ...body,
+          first_name,
+          last_name,
+          bod,
+          sex,
+          email,
+          phone,
+          address,
+          join_date,
+          photo,
         };
-        delete bodyUpdate.password;
-        delete bodyUpdate.username;
-        delete bodyUpdate.roles;
-        console.log(bodyUpdate);
         db.query(sqlInsertUser, [bodyUpdate], (err, result) => {
           if (err) return reject(err);
           const prepare = [result.insertId, username, password, roles];
@@ -50,7 +63,6 @@ const login = (body) => {
         return reject(err);
       }
       if (result.length == 0) {
-        console.log(result);
         return resolve({
           status: 401,
           result: {

@@ -10,15 +10,16 @@ const getVehicles = (category) => {
     if (category.toLocaleLowerCase() === 'popular') {
       msg = 'Popular in Town:';
       sqlQuery = `
-        SELECT v.id, c.city, v.brand, v.model,
-        count(h.vehicle_id) jml_vhc 
-        FROM history h 
-        JOIN vehicles v 
-        ON v.id = h.vehicle_id
-        JOIN city c on c.id = v.city_id
-        group by h.vehicle_id
-        ORDER BY jml_vhc DESC
-        LIMIT 10`;
+      SELECT h.vehicle_id, ct.city, c.category, v.brand,
+      v.model, v.capacity, v.price
+      FROM history h 
+      LEFT join testimony t ON h.id = t.history_id 
+      JOIN vehicles v ON v.id = h.vehicle_id
+      JOIN city ct ON v.city_id = ct.id
+      JOIN category c ON v.category_id = c.id
+      GROUP BY h.vehicle_id 
+      ORDER BY (0.5*avg(coalesce(t.rate,0))+(1-0.5)*count(h.vehicle_id)) DESC
+      LIMIT 10`;
     }
     let keyword = ``;
     if (
@@ -27,19 +28,17 @@ const getVehicles = (category) => {
     ) {
       keyword = category;
       msg = `Popular ${category}`;
-      sqlQuery = `SELECT 
-        v.id,
-        v.brand,
-        v.model,
-        ct.category, c.city  
-        FROM history h 
-        JOIN vehicles v ON v.id = h.vehicle_id 
-        JOIN city c ON c.id = v.city_id 
-        JOIN category ct ON ct.id = v.category_id
-        WHERE ct.category = ? 
-        GROUP BY v.id 
-        ORDER BY (count(h.vehicle_id))
-        LIMIT 10`;
+      sqlQuery = `SELECT h.vehicle_id, ct.city, c.category, v.brand,
+      v.model, v.capacity, v.price
+      from history h 
+      LEFT join testimony t ON h.id = t.history_id 
+      JOIN vehicles v ON v.id = h.vehicle_id
+      JOIN city ct ON v.city_id = ct.id
+      JOIN category c ON v.category_id = c.id
+      WHERE c.category = ?
+      GROUP BY h.vehicle_id 
+      ORDER BY (0.5*avg(coalesce(t.rate,0))+(1-0.5)*count(h.vehicle_id)) DESC
+      LIMIT 10`;
     }
     db.query(sqlQuery, [keyword], (err, result) => {
       if (err) {
@@ -47,7 +46,7 @@ const getVehicles = (category) => {
       }
       if (result.length == 0) {
         msg = `Category can't be  found`;
-        return resolve({status: 200, msg});
+        return resolve({status: 200, result: {msg}});
       }
       return resolve({status: 200, result: {msg, result}});
     });
@@ -158,13 +157,7 @@ const getDetailByID = (id) => {
 const searchVehicles = (query) => {
   return new Promise((resolve, reject) => {
     console.log(query);
-    let {
-      cityId,
-      categorId,
-      brand,
-      model,
-      minCapacity,
-    } = query;
+    let {cityId, categorId, brand, model, minCapacity} = query;
     cityId = cityId == '' || !cityId ? '%%' : `%${cityId}%`;
     categorId = categorId == '' || !categorId ? '%%' : `%${categorId}%`;
     brand = brand == '' || !brand ? '%%' : `%${brand}%`;

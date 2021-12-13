@@ -4,12 +4,10 @@ const modelHelp = require('../helpers/modelsHelper');
 const fs = require('fs');
 
 const searchUserByName = (name) => {
-  console.log(name);
   return new Promise((resolve, reject) => {
     let keyword = `%%`;
     if (typeof name !== 'undefined' && name !== '') {
       keyword = `%${name}%`;
-      console.log(keyword);
     }
     const mysqlQuery = `SELECT users.id, users.first_name, users.last_name, 
     users.sex, users.email, users.phone, users.address, 
@@ -44,8 +42,29 @@ const deleteUser = (id) => {
 
 const uploadProfilePicture = (id, filename) => {
   return new Promise((resolve, reject) => {
-    const sqlUploadPhoto = `UPDATE users SET photo = ? WHERE id = ?`;
-    db.query(sqlUploadPhoto, [filename, id], (err, result) => {
+    const sqlSelect = `SELECT photo FROM users WHERE id = ?`;
+    db.query(sqlSelect, [id], (err, result) => {
+      if (err) return reject(err);
+      if (result[0].photo !== null) {
+        fs.unlink(`../vehicle-rental/src/media/images/${filename}`, (err) => {
+          if (err) {
+            resolve({
+              staus: 200,
+              result: {msg: 'Error occur while deleting old photo.', err},
+            });
+          }
+        });
+        return resolve({
+          status: 403,
+          result: {
+            msg: 'Photo already exist, use update profile picture, instead.',
+          },
+        });
+      }
+      const sqlUploadPhoto = `UPDATE users SET photo = ? WHERE id = ?`;
+      db.query(sqlUploadPhoto, [filename, id], (err, result) => {
+        modelHelp.rejectOrResolve(err, result, resolve, reject);
+      });
       modelHelp.rejectOrResolve(err, result, resolve, reject);
     });
   });
@@ -79,9 +98,19 @@ const updateProfilePicture = (id, filename) => {
   });
 };
 
+const getUserPhoto = (id) => {
+  return new Promise((resolve, reject) => {
+    const sqlSelect = `SELECT photo FROM users WHERE id = ?`;
+    db.query(sqlSelect, [id], (err, result) => {
+      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    });
+  });
+};
+
 module.exports = {
   searchUserByName,
   deleteUser,
   uploadProfilePicture,
   updateProfilePicture,
+  getUserPhoto,
 };

@@ -7,9 +7,7 @@ const storage = multer.diskStorage({
     cb(null, '../vehicle-rental/src/media/images');
   },
   filename: (req, file, cb) => {
-    const {payload} = req;
-    id = payload.id;
-    const fileName = `${file.fieldname}-${id}-${Date.now()}${path.extname(
+    const fileName = `${file.fieldname}-${Date.now()}${path.extname(
       file.originalname
     )}`;
     cb(null, fileName);
@@ -38,7 +36,6 @@ const upload = multer(multerOption).single('profilePicture');
 
 const multerHandler = (req, res, next) => {
   upload(req, res, (err) => {
-    console.log(err);
     if (err && err.code === 'LIMIT_FILE_SIZE') {
       return res
         .status(500)
