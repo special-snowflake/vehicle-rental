@@ -96,21 +96,15 @@ const getUserByUnsername = (req, res) => {
 
 const getUserByName = (req, res) => {
   const {query} = req;
-  const name = query.name;
   modelUser
-    .searchUserByName(name)
+    .searchUserByName(query)
     .then(({status, result}) => {
-      if (result.length == 0) {
+      if (result.result.length == 0) {
         return resHelper.success(res, status, {
           msg: `0 user found with that name.`,
         });
       }
-      const msg =
-        result.length == 1 ? `1 User Found:` : `${result.length} Users Found:`;
-      return resHelper.success(res, status, {
-        msg,
-        result,
-      });
+      return resHelper.success(res, status, result);
     })
     .catch((err) => {
       resHelper.error(res, 500, {msg: 'Something went wrong', err});
@@ -137,33 +131,6 @@ const updateUser = (req, res) => {
       resHelper.error(res, 500, err);
     });
 };
-
-// const updateUser = (req, res) => {
-//   const {
-//     bodyUpdate: {id, first_name, last_name, bod, sex, email, phone, address},
-//   } = req;
-//   const params = [first_name, last_name, bod, sex, email, phone, address, id];
-//   const sqlQuery = `UPDATE users SET
-//       first_name = ?,
-//       last_name = ?,
-//       bod = ?,
-//       sex = ?,
-//       email = ?,
-//       phone = ?,
-//       address = ?
-//       WHERE id = ?;`;
-//   db.query(sqlQuery, params, (err, result) => {
-//     if (err)
-//       return res.status(500).json({
-//         msg: 'Something went wrong.',
-//         err,
-//       });
-//     return res.status(200).json({
-//       msg: 'Data successfully updated.',
-//       newData: req.bodyUpdate,
-//     });
-//   });
-// };
 
 const deleteUser = (req, res) => {
   const {body} = req;

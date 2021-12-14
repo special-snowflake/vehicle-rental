@@ -1,7 +1,7 @@
 # Vehicle Rental
 #Repo for vehicle rental.
 
-Use this program to get an API JSON from a vehicle rental bussiness locally.
+Use this program to get an API JSON from a vehicle rental bussiness.
 
 All program/package needed to run this:
 
@@ -19,3 +19,4 @@ All program/package needed to run this:
 ![image](https://user-images.githubusercontent.com/22422287/145001545-03368d60-3ac5-4226-9b8c-b5638b268edc.png)
 11. Use jsonwebtoken to decode and veryfy a JWT ```$ npm install jsonwebtoken```.
 12. Use cors to set a enable CORS(Cross-origin resource sharing) ```$npm install cors```.
+13. Install multer to help with file upload ```$ npm install multer```.

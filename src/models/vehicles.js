@@ -1,4 +1,3 @@
-const {reject} = require('bcrypt/promises');
 const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
@@ -98,27 +97,27 @@ const getAllVehicles = (query) => {
       const nPage = nextOffset > count ? null : +page + 1;
       const pPage = page > 1 ? +page - 1 : null;
       const nextPage =
-        nPage != null
-          ? '/vehicles?orderBy=' +
+        nPage != null ?
+          '/vehicles?orderBy=' +
             orderBy +
             '&&sort=' +
             sortSpliced +
             '&&limit=' +
             limit +
             '&&page=' +
-            nPage
-          : null;
+            nPage :
+          null;
       const previousPage =
-        pPage != null
-          ? '/vehicles?orderBy=' +
+        pPage != null ?
+          '/vehicles?orderBy=' +
             orderBy +
             '&&sort=' +
             sortSpliced +
             '&&limit=' +
             limit +
             '&&page=' +
-            pPage
-          : null;
+            pPage :
+          null;
       db.query(sqlShowData, prepare, (err, result) => {
         if (err) return reject(err);
         modelHelp.rejectOrResolve(
@@ -226,27 +225,46 @@ const searchVehicles = (query) => {
         count
       );
       const nextPage =
-        nPage != null
-          ? '/vehicles?orderBy=' +
+        nPage != null ?
+          '/vehicles/search?cityId=' +
+            cityId +
+            '&categoryId=' +
+            categorId +
+            '&model=' +
+            categorId +
+            '&brand=' +
+            brand +
+            '&minCapacity=' +
+            minCapacity +
+            '&orderBy=' +
             orderBy +
-            '&&sort=' +
+            '&sort=' +
             sortSpliced +
-            '&&limit=' +
+            '&limit=' +
             limit +
-            '&&page=' +
-            nPage
-          : null;
+            '&page=' +
+            nPage :
+          null;
       const previousPage =
-        pPage != null
-          ? '/vehicles?orderBy=' +
-            orderBy +
-            '&&sort=' +
+        pPage != null ?
+          '/vehicles/search?cityId=' +
+            cityId +
+            '&categoryId=' +
+            categorId +
+            '&model=' +
+            categorId +
+            '&brand=' +
+            brand +
+            '&minCapacity=' +
+            minCapacity +
+            '&orderBy=' +
+            '&sort=' +
             sortSpliced +
-            '&&limit=' +
+            '&limit=' +
             limit +
-            '&&page=' +
-            pPage
-          : null;
+            '&page=' +
+            pPage :
+          null;
       const sqlSearch = `SELECT v.id, v.model, v. brand, 
           v.stock, c.city, ct.category, v.price, v.capacity
           FROM vehicles v JOIN city c ON v.city_id = c.id
@@ -265,10 +283,6 @@ const searchVehicles = (query) => {
         );
       });
     });
-
-    // db.query(sqlSearch, prepare, (err, result) => {
-    //   modelHelp.rejectOrResolve(err, result, resolve, reject);
-    // });
   });
 };
 

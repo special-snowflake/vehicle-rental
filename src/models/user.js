@@ -3,25 +3,53 @@ const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
 const fs = require('fs');
 
-const searchUserByName = (name) => {
+const searchUserByName = (query) => {
   return new Promise((resolve, reject) => {
+    let {name, page, limit} = query;
+    if (!limit) {
+      limit = 5;
+    }
+    if (!page) {
+      page = '1';
+      offset = 0;
+    } else {
+      offset = (+page - 1) * +limit;
+    }
     let keyword = `%%`;
-    if (typeof name !== 'undefined' && name !== '') {
+    if (name !== '' && name) {
       keyword = `%${name}%`;
     }
-    const mysqlQuery = `SELECT users.id, users.first_name, users.last_name, 
-    users.sex, users.email, users.phone, users.address, 
-    users.join_date, u.username FROM users 
+    console.log('keyword, name: ', keyword, name);
+    const prepare = [mysql.raw(keyword), mysql.raw(keyword), offset, limit];
+    const sqlCount = `SELECT count(*) count FROM users 
     JOIN user_access u on users.id = u.user_id
     WHERE first_name LIKE '?' or last_name LIKE '?'`;
-    db.query(
-      mysqlQuery,
-      [mysql.raw(keyword), mysql.raw(keyword)],
-      (err, result) => {
+    const mysqlQuery = `SELECT users.id, users.first_name, users.last_name, 
+    users.sex, users.email, users.phone, users.address,
+     users.join_date, u.username
+     FROM users 
+     JOIN user_access u on users.id = u.user_id
+     WHERE users.first_name LIKE '?' or users.last_name LIKE '?'
+      LIMIT ?, ?`;
+    db.query(sqlCount, prepare, (err, result) => {
+      if (err) return reject(err);
+      const count = result[0].count;
+      const nextOffset = +offset + +limit;
+      const nPage = nextOffset > count ? null : +page + 1;
+      const pPage = page > 1 ? +page - 1 : null;
+      const nextPage =
+        nPage != null
+          ? '/user?name=' + name + '&&limit=' + limit + '&&page=' + nPage
+          : null;
+      const previousPage =
+        pPage != null
+          ? '/user?name=' + name + '&&limit=' + limit + '&&page=' + pPage
+          : null;
+      db.query(mysqlQuery, prepare, (err, result) => {
         if (err) return reject(err);
-        resolve({status: 200, result});
-      }
-    );
+        resolve({status: 200, result: {previousPage, page, nextPage, result}});
+      });
+    });
   });
 };
 
