@@ -3,52 +3,99 @@ const db = require('../config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-const register = (body, photo) => {
+// const register = (body, photo) => {
+//   return new Promise((resolve, reject) => {
+//     let password = body.password;
+//     const username = body.username;
+//     const roles = body.roles;
+//     const sqlInsertUser = `INSERT INTO users SET ?;`;
+//     const sqlInsertUserAccess = `INSERT INTO user_access
+//     (user_id, username, password, roles)
+//     VALUES (?, ?, ?, ?);`;
+//     bcrypt
+//       .hash(body.password, 10)
+//       .then((hashedPassword) => {
+//         password = hashedPassword;
+//         const {
+//           first_name,
+//           last_name,
+//           bod,
+//           sex,
+//           email,
+//           phone,
+//           address,
+//           join_date,
+//         } = body;
+//         const bodyUpdate = {
+//           first_name,
+//           last_name,
+//           bod,
+//           sex,
+//           email,
+//           phone,
+//           address,
+//           join_date,
+//           photo,
+//         };
+//         db.query(sqlInsertUser, [bodyUpdate], (err, result) => {
+//           if (err) return reject(err);
+//           const prepare = [result.insertId, username, password, roles];
+//           db.query(sqlInsertUserAccess, prepare, (err, result) => {
+//             if (err) return reject(err);
+//             resolve({status: 201, result});
+//           });
+//         });
+//       })
+//       .catch((err) => {
+//         reject(err);
+//       });
+//   });
+// };
+
+const register = (body) => {
   return new Promise((resolve, reject) => {
-    let password = body.password;
-    const username = body.username;
-    const roles = body.roles;
-    const sqlInsertUser = `INSERT INTO users SET ?;`;
+    const firstName = body.name;
+    const email = body.email;
+    const password = body.password;
+    const sqlCheckEmail = `SELECT email from users where email = ?`;
+    const sqlInserUser = `INSERT INTO users (first_name, email)
+    VALUES (?, ?)`;
     const sqlInsertUserAccess = `INSERT INTO user_access 
-    (user_id, username, password, roles) 
-    VALUES (?, ?, ?, ?);`;
-    bcrypt
-      .hash(body.password, 10)
-      .then((hashedPassword) => {
-        password = hashedPassword;
-        const {
-          first_name,
-          last_name,
-          bod,
-          sex,
-          email,
-          phone,
-          address,
-          join_date,
-        } = body;
-        const bodyUpdate = {
-          first_name,
-          last_name,
-          bod,
-          sex,
-          email,
-          phone,
-          address,
-          join_date,
-          photo,
-        };
-        db.query(sqlInsertUser, [bodyUpdate], (err, result) => {
-          if (err) return reject(err);
-          const prepare = [result.insertId, username, password, roles];
-          db.query(sqlInsertUserAccess, prepare, (err, result) => {
-            if (err) return reject(err);
-            resolve({status: 201, result});
-          });
+    (user_id,password) VALUES (?,?)`;
+    db.query(sqlCheckEmail, [email], (err, result) => {
+      if (err) return reject(err);
+      if (result.length !== 0) {
+        return resolve({
+          status: 401,
+          result: {errMsg: 'Email is already registered'},
         });
-      })
-      .catch((err) => {
-        reject(err);
-      });
+      }
+      console.log('[db]auth mdl email is ok');
+      bcrypt
+        .hash(password, 10)
+        .then((hashedPassword) => {
+          console.log('[db]auth mdl hashpass is ok');
+          const prepareUsers = [firstName, email];
+          db.query(sqlInserUser, prepareUsers, (err, result) => {
+            if (err) return reject(err);
+            console.log('[db]auth insert users is ok');
+            const userId = result.insertId;
+            const preparUserAccess = [result.insertId, hashedPassword];
+            db.query(sqlInsertUserAccess, preparUserAccess, (err, result) => {
+              console.log('[db]auth insert ua is ok');
+              if (err) return reject(err);
+              return resolve({
+                status: 200,
+                result: {msg: 'Register success.', userId, email},
+              });
+            });
+          });
+        })
+        .catch((err) => {
+          console.log('[db] auth mdl bcrypt error');
+          return reject(err);
+        });
+    });
   });
 };
 

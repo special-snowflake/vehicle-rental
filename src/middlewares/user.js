@@ -64,13 +64,14 @@ const getDataUserForUpdate = (req, res, next) => {
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'address', address);
     let photo = null;
     if (file !== undefined) {
-      console.log('wyhy am i here');
+      console.log('[db] inside file undefined');
       photo = file.filename;
     }
     if (photo !== null) {
-      console.log('photo not null', photo);
+      console.log('[db] mid use new photo name', photo);
       const oldPhoto = bodyUpdate[0].photo;
-      fs.unlink(`../vehicle-rental/src/media/images/${oldPhoto}`, (err) => {
+      console.log('old photo', oldPhoto);
+      fs.unlink(`../vehicle-rental/media/images/${oldPhoto}`, (err) => {
         if (err) {
           return resolve({
             staus: 200,
@@ -89,4 +90,30 @@ const getDataUserForUpdate = (req, res, next) => {
   });
 };
 
-module.exports = {checkUsername, getDataUserForUpdate};
+const validateRegister = (req, res, next) => {
+  const {body} = req;
+  const registerBody = [
+    'first_name',
+    'last_name',
+    'bod',
+    'sex',
+    'email',
+    'address',
+    'join_date',
+    'username',
+    'password',
+    'roles',
+  ];
+  const bodyProperty = Object.keys(body);
+  console.log(req);
+  const isBodyValid =
+    registerBody.filter((property) => !bodyProperty.includes(property))
+      .length == 0
+      ? true
+      : false;
+  console.log(isBodyValid);
+  if (!isBodyValid) return res.status(400).json({msg: 'Invalid Body'});
+  next();
+};
+
+module.exports = {checkUsername, getDataUserForUpdate, validateRegister};

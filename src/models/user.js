@@ -74,7 +74,7 @@ const uploadProfilePicture = (id, filename) => {
     db.query(sqlSelect, [id], (err, result) => {
       if (err) return reject(err);
       if (result[0].photo !== null) {
-        fs.unlink(`../vehicle-rental/src/media/images/${filename}`, (err) => {
+        fs.unlink(`../vehicle-rental/media/images/${filename}`, (err) => {
           if (err) {
             resolve({
               staus: 200,
@@ -111,7 +111,7 @@ const updateProfilePicture = (id, filename) => {
       }
       const photo = result[0].photo;
       db.query(sqlUploadPhoto, [filename, id], (err, result) => {
-        fs.unlink(`../vehicle-rental/src/media/images/${photo}`, (err) => {
+        fs.unlink(`../vehicle-rental/media/images/${photo}`, (err) => {
           if (err) {
             resolve({
               staus: 200,
