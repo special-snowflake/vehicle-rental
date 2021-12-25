@@ -3,7 +3,7 @@ const validateLogin = (req, res, next) => {
   const user = req.body.user;
   const password = req.body.password;
   if (!password || password == '' || !user || user == '') {
-    return resHelper.error(res, 400, {err: {msgError: 'Wrong Input.'}});
+    return resHelper.error(res, 400, {errMsg: 'Wrong Input.'});
   }
   next();
 };
@@ -20,10 +20,50 @@ const validateRegister = (req, res, next) => {
     !password ||
     password == ''
   ) {
-    return resHelper.error(res, 400, {err: {msgError: 'Wrong Input.'}});
+    return resHelper.error(res, 400, {
+      errMsg: 'Wrong Input. Please check your input.',
+    });
   }
   next();
-  // return resHelper.success(res, 200, {err: {msgError: 'Correct Input.'}});
 };
 
-module.exports = {validateLogin, validateRegister};
+const validateAddVehicle = (req, res, next) => {
+  const {
+    body: {category, city, brand, model, capacity, price, status, stock},
+  } = req;
+  console.log(req.body);
+  if (
+    !category ||
+    category === '' ||
+    !city ||
+    city === '' ||
+    !brand ||
+    !model ||
+    !capacity ||
+    capacity === '' ||
+    !price ||
+    price === '' ||
+    !status ||
+    !stock ||
+    stock === ''
+  ) {
+    return resHelper.error(res, 400, {
+      errMsg: 'All Field Should Be Filled.',
+    });
+  }
+  if (!req.files) {
+    return resHelper.error(res, 400, {
+      errMsg: 'Please add images.',
+    });
+  }
+  console.log('db body inside validate', req.body);
+  const {imagePath} = req;
+  return resHelper.success(res, 200, {
+    msg: 'success',
+    imagepath: imagePath,
+    body: req.body,
+  });
+  // next();
+};
+
+module.exports = {validateLogin, validateRegister, validateAddVehicle};

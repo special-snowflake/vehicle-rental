@@ -13,20 +13,6 @@ const getVehicles = (req, res) => {
     });
 };
 
-const getAllVehicles = (req, res) => {
-  console.log(req.payload);
-  vehiclesModel
-    .getAllVehicles(req.query)
-    .then(({status, result}) => {
-      return resHelper.success(res, status, result);
-    })
-    .catch((err) => {
-      if (err.errno == '1054') {
-        return resHelper.error(res, 500, {msg: 'Wrong input oderBy.'});
-      }
-      resHelper.error(res, 500, {msg: 'Something went wrong ', err});
-    });
-};
 
 const getDetailByID = (req, res) => {
   console.log('something');
@@ -59,48 +45,13 @@ const searchVehicles = (req, res) => {
 };
 
 const addNewVehicle = (req, res) => {
-  const {
-    body: {
-      brand,
-      model,
-      capacity,
-      price,
-      status,
-      stock,
-      cityID,
-      categoryID,
-      category,
-      city,
-    },
-  } = req;
-  const prepare = [
-    categoryID,
-    cityID,
-    brand,
-    model,
-    capacity,
-    price,
-    status,
-    stock,
-  ];
   vehiclesModel
-    .addNewVehicle(prepare)
+    .addNewVehicle(req)
     .then(({status, result}) => {
-      return resHelper.success(res, status, {
-        msg: 'New Item is Added to Vehicles',
-        id: result.insertId,
-        category,
-        city,
-        brand,
-        model,
-        capacity,
-        price,
-        status,
-        stock,
-      });
+      return resHelper.success(res, status, result);
     })
     .catch((err) => {
-      resHelper.error(res, 500, err);
+      return resHelper.error(res, 500, {errMsg: 'Something went wrong', err});
     });
 };
 
@@ -131,12 +82,10 @@ const updateVehicle = (req, res) => {
   ];
   vehiclesModel
     .updateVehicle(params, req)
-    .then(({status, result}) => {
+    .then(({status, _result}) => {
       return resHelper.success(res, status, {
-        result: {
-          msg: 'Data successfully updated.',
-          newData: req.bodyUpdate,
-        },
+        msg: 'Vehicle successfully updated.',
+        data: req.bodyUpdate,
       });
     })
     .catch((err) => {
@@ -165,7 +114,6 @@ module.exports = {
   getVehicles,
   addNewVehicle,
   updateVehicle,
-  getAllVehicles,
   deleteVehicle,
   getDetailByID,
   searchVehicles,

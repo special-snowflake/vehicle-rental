@@ -17,12 +17,14 @@ userRouter.post(
   controllerUser.uploadProfilePicture
 );
 
+/*
 userRouter.patch(
   '/photo',
   auth.authorizeAllUser,
   upload,
   controllerUser.updateProfilePicture
 );
+*/
 
 userRouter.patch(
   '/',

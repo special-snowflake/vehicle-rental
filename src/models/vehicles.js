@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
+const fs = require('fs');
 
 const getVehicles = (category) => {
   return new Promise((resolve, reject) => {
@@ -44,14 +45,18 @@ const getVehicles = (category) => {
         return reject(err);
       }
       if (result.length == 0) {
-        msg = `Category can't be  found`;
-        return resolve({status: 200, result: {msg}});
+        const errMsg = `Category can't be  found`;
+        return resolve({status: 404, result: {errMsg}});
       }
-      return resolve({status: 200, result: {msg, result}});
+      return resolve({
+        status: 200,
+        result: {msg, meta: {totalData: result.length}, data: result},
+      });
     });
   });
 };
 
+/*
 const getAllVehicles = (query) => {
   return new Promise((resolve, reject) => {
     let {orderBy, sort, limit, page} = query;
@@ -97,27 +102,27 @@ const getAllVehicles = (query) => {
       const nPage = nextOffset > count ? null : +page + 1;
       const pPage = page > 1 ? +page - 1 : null;
       const nextPage =
-        nPage != null ?
-          '/vehicles?orderBy=' +
+        nPage != null
+          ? '/vehicles?orderBy=' +
             orderBy +
             '&&sort=' +
             sortSpliced +
             '&&limit=' +
             limit +
             '&&page=' +
-            nPage :
-          null;
+            nPage
+          : null;
       const previousPage =
-        pPage != null ?
-          '/vehicles?orderBy=' +
+        pPage != null
+          ? '/vehicles?orderBy=' +
             orderBy +
             '&&sort=' +
             sortSpliced +
             '&&limit=' +
             limit +
             '&&page=' +
-            pPage :
-          null;
+            pPage
+          : null;
       db.query(sqlShowData, prepare, (err, result) => {
         if (err) return reject(err);
         modelHelp.rejectOrResolve(
@@ -130,6 +135,7 @@ const getAllVehicles = (query) => {
     });
   });
 };
+*/
 
 const getDataForUpdate = (id) => {
   return new Promise((resolve, reject) => {
@@ -157,7 +163,7 @@ const searchVehicles = (query) => {
   return new Promise((resolve, reject) => {
     let {
       cityId,
-      categorId,
+      categoryId,
       brand,
       model,
       minCapacity,
@@ -166,7 +172,9 @@ const searchVehicles = (query) => {
       limit,
       page,
     } = query;
-    console.log('[db] sc vehicle inside query', query);
+    console.log(query);
+    let nextPage = '/search?';
+    let previousPage = '/search?';
     let offset = '';
     if (orderBy !== '' && typeof orderBy !== 'undefined') {
       if (typeof sort !== 'undefined') {
@@ -188,14 +196,41 @@ const searchVehicles = (query) => {
       offset = (+page - 1) * +limit;
     }
     console.log('[db check after me]');
+    nextPage += cityId == '' || !cityId ? `cityId=&` : `cityId=${cityId}&`;
+    previousPage += cityId == '' || !cityId ? `cityId=&` : `cityId=${cityId}&`;
     cityId = cityId == '' || !cityId ? '%%' : `%${cityId}%`;
-    categorId = categorId == '' || !categorId ? '%%' : `%${categorId}%`;
+
+    nextPage +=
+      categoryId == '' || !categoryId
+        ? `categoryId=&`
+        : `categoryId=${categoryId}&`;
+    previousPage +=
+      categoryId == '' || !categoryId
+        ? `categoryId=&`
+        : `categoryId=${categoryId}&`;
+    categoryId = categoryId == '' || !categoryId ? '%%' : `%${categoryId}%`;
+
+    nextPage += brand == '' || !brand ? `brand=&` : `brand=${brand}&`;
+    previousPage += brand == '' || !brand ? `brand=&` : `brand=${brand}&`;
     brand = brand == '' || !brand ? '%%' : `%${brand}%`;
+
+    nextPage += model == '' || !model ? `model=&` : `model=${model}&`;
+    previousPage += model == '' || !model ? `model=&` : `model=${model}&`;
     model = model == '' || !model ? '%%' : `%${model}%`;
+
+    nextPage +=
+      minCapacity == '' || !minCapacity
+        ? `minCapacity=`
+        : `minCapacity=${minCapacity}`;
+    previousPage +=
+      minCapacity == '' || !minCapacity
+        ? `minCapacity=`
+        : `minCapacity=${minCapacity}`;
     minCapacity = minCapacity == '' || !minCapacity ? '1' : minCapacity;
+
     const prepare = [
       cityId,
-      categorId,
+      categoryId,
       brand,
       model,
       minCapacity,
@@ -210,61 +245,45 @@ const searchVehicles = (query) => {
     WHERE v.city_id LIKE ? and v.category_id LIKE ? 
     and v.brand LIKE ? and v.model LIKE ? and v.capacity >= ? `;
     db.query(sqlCount, prepare, (err, result) => {
-      console.log('inside sql count');
       if (err) reject(err);
       const count = result[0].count;
       const sortSpliced = sort.slice(1, sort.length);
       const nextOffset = +offset + +limit;
       const nPage = nextOffset > count ? null : +page + 1;
       const pPage = page > 1 ? +page - 1 : null;
-      console.log(
-        '[db] npage, ppage, noffset, count:  ',
-        nPage,
-        pPage,
-        nextOffset,
-        count
-      );
-      const nextPage =
-        nPage != null ?
-          '/vehicles/search?cityId=' +
-            cityId +
-            '&categoryId=' +
-            categorId +
-            '&model=' +
-            categorId +
-            '&brand=' +
-            brand +
-            '&minCapacity=' +
-            minCapacity +
-            '&orderBy=' +
-            orderBy +
-            '&sort=' +
-            sortSpliced +
-            '&limit=' +
-            limit +
-            '&page=' +
-            nPage :
-          null;
-      const previousPage =
-        pPage != null ?
-          '/vehicles/search?cityId=' +
-            cityId +
-            '&categoryId=' +
-            categorId +
-            '&model=' +
-            categorId +
-            '&brand=' +
-            brand +
-            '&minCapacity=' +
-            minCapacity +
-            '&orderBy=' +
-            '&sort=' +
-            sortSpliced +
-            '&limit=' +
-            limit +
-            '&page=' +
-            pPage :
-          null;
+      console.log(nextPage, previousPage);
+      if (nPage == null) {
+        nextPage = null;
+      } else {
+        nextPage +=
+          '&orderBy=' +
+          orderBy +
+          '&sort=' +
+          sortSpliced +
+          '&limit=' +
+          limit +
+          '&page=' +
+          nPage;
+      }
+      if (pPage == null) {
+        previousPage = null;
+      } else {
+        previousPage +=
+          '&orderBy=' +
+          orderBy +
+          '&sort=' +
+          sortSpliced +
+          '&limit=' +
+          limit +
+          '&page=' +
+          nPage;
+      }
+      const meta = {
+        totalData: count,
+        previousPage,
+        page,
+        nextPage,
+      };
       const sqlSearch = `SELECT v.id, v.model, v. brand, 
           v.stock, c.city, ct.category, v.price, v.capacity
           FROM vehicles v JOIN city c ON v.city_id = c.id
@@ -275,12 +294,10 @@ const searchVehicles = (query) => {
           LIMIT ?, ?;`;
       db.query(sqlSearch, prepare, (err, result) => {
         if (err) return reject(err);
-        modelHelp.rejectOrResolve(
-          err,
-          {previousPage, page, nextPage, result},
-          resolve,
-          reject
-        );
+        return resolve({
+          status: 200,
+          result: {msg: 'Result search vehicle.', meta, data: result},
+        });
       });
     });
   });
@@ -305,14 +322,83 @@ const updateVehicle = (params) => {
   });
 };
 
-const addNewVehicle = (prepare) => {
+const addNewVehicle = (req) => {
   return new Promise((resolve, reject) => {
+    const {
+      body: {brand, model, capacity, price, status, stock, category, city},
+    } = req;
+    const prepare = [
+      category,
+      city,
+      brand,
+      model,
+      capacity,
+      price,
+      status,
+      stock,
+    ];
+    const images = req.images;
     const sqlQuery = `
     INSERT INTO vehicles 
     ( category_id, city_id, brand, model, capacity, price, status, stock) 
     VALUES ( ?, ?, ?, ?, ?, ?, ?, ?);`;
     db.query(sqlQuery, prepare, (err, result) => {
-      modelHelp.rejectOrResolve(err, result, resolve, reject);
+      if (err) {
+        images.forEach((element) => {
+          fs.unlink(
+            `../vehicle-rental/media/vehicle-images/${element}`,
+            (err) => {
+              if (err) {
+                resolve({
+                  staus: 500,
+                  result: {errMsg: 'Error occur while deleting images.', err},
+                });
+              }
+            }
+          );
+        });
+        return reject(err);
+      }
+      const id = result.insertId;
+      let values = `VALUES`;
+      const prepareImages = [];
+      images.forEach((element, index) => {
+        if (index !== images.length - 1) {
+          values += ` (?,?), `;
+        } else {
+          values += ` (?,?) `;
+        }
+        prepareImages.push(id, element);
+        console.log(element);
+      });
+      console.log('[db]model values, prepare', values, prepareImages);
+      const queryImages = `INSERT INTO vehicle_images (vehicle_id, image) 
+      ${values}`;
+      db.query(queryImages, prepareImages, (err, result) => {
+        if (err) {
+          images.forEach((element) => {
+            fs.unlink(
+              `../vehicle-rental/media/vehicle-images/${element}`,
+              (err) => {
+                if (err) {
+                  resolve({
+                    staus: 500,
+                    result: {errMsg: 'Error occur while deleting images.', err},
+                  });
+                }
+              }
+            );
+          });
+          return reject(err);
+        }
+        return resolve({
+          status: 200,
+          result: {
+            msg: 'New Vehicle Added.',
+            data: {id, brand, model, capacity, price, status, stock, images},
+          },
+        });
+      });
     });
   });
 };
@@ -349,7 +435,6 @@ const checkInputCity = (city) => {
 
 module.exports = {
   getVehicles,
-  getAllVehicles,
   updateVehicle,
   addNewVehicle,
   deleteVehicle,

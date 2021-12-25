@@ -19,9 +19,9 @@ const addHistory = (req, res) => {
     },
   } = req;
   if (rental_date > return_date)
-    return res
-      .status(422)
-      .send('Return date must be bigger or the same as rental date.');
+    return resHelper.error(res, 422, {
+      errMSg: `Return date must be bigger or the same as rental date.`,
+    });
   const rentalDays = calculateDays(rental_date, return_date);
   const totalPayment = unit * rentalDays * price;
   const prepare = [
@@ -37,7 +37,6 @@ const addHistory = (req, res) => {
     .modelAddHistory(prepare)
     .then(({status, result}) => {
       const data = {
-        msg: 'New History Added',
         id: result.insertId,
         vehicleId,
         userId,
@@ -47,10 +46,13 @@ const addHistory = (req, res) => {
         unit,
         totalPayment,
       };
-      resHelper.success(res, status, data);
+      resHelper.success(res, status, {
+        msg: 'New History Added',
+        data,
+      });
     })
     .catch((err) => {
-      resHelper.error(res, 500, {msg: 'Something went wrong', err});
+      resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
     });
 };
 
@@ -77,7 +79,7 @@ const getHistory = (req, res) => {
     .then(({status, result}) => {
       if (result.length == 0) {
         return resHelper.success(res, status, {
-          msg: `There's no history to show`,
+          msg: `There's not a single history found.`,
         });
       }
       const history = [];
@@ -91,10 +93,19 @@ const getHistory = (req, res) => {
           return_date: returnDate,
         };
       });
-      return resHelper.success(res, status, {msg: 'History:', history});
+      return resHelper.success(res, status, {
+        msg: 'History:',
+        meta: {
+          totalData: result.length,
+        },
+        data: history,
+      });
     })
     .catch((err) => {
-      resHelper.error(res, 500, {msg: 'Data cannot be retrieved', err});
+      resHelper.error(res, 500, {
+        errMsg: 'Data history cannot be retrieved.',
+        err,
+      });
     });
 };
 
@@ -112,11 +123,14 @@ const updateHistory = (req, res) => {
   ];
   modelHistory
     .modelUpdateHistory(prepare)
-    .then(({status, result}) => {
-      resHelper.success(res, status, {bodyUpdate});
+    .then(({status}) => {
+      resHelper.success(res, status, {
+        msg: 'History is updated.',
+        data: bodyUpdate,
+      });
     })
     .catch((err) => {
-      resHelper.error(res, 500, {msg: 'Something went wrong', err});
+      resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
     });
 };
 
@@ -134,21 +148,19 @@ const deleteHistory = (req, res) => {
     },
   } = req;
   const sqlQuery = 'DELETE FROM history WHERE id = ?';
-  db.query(sqlQuery, [id], (err, result) => {
+  db.query(sqlQuery, [id], (err) => {
     if (err) {
       if (err.code == 'ER_ROW_IS_REFERENCED_2') {
-        return res.status(409).json({
-          msg: `Cannot delete data that's being used.`,
-          err: err.code,
+        return resHelper.error(res, 409, {
+          errMsg: `Cannot delete data that's being used.`,
         });
       }
-      return res.status(500).json({
-        msg: 'Something went wrong',
+      return resHelper.error(res, 500, {
+        errMsg: 'Something went wrong.',
         err,
       });
     }
-    return res.status(200).json({
-      msg: 'History deleted',
+    const data = {
       id,
       vehicle_id,
       user_id,
@@ -157,6 +169,10 @@ const deleteHistory = (req, res) => {
       return_status,
       unit,
       total_payment,
+    };
+    return res.status(200).json({
+      msg: 'History deleted.',
+      data,
     });
   });
 };

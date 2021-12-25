@@ -70,7 +70,6 @@ const register = (body) => {
           result: {errMsg: 'Email is already registered'},
         });
       }
-      console.log('[db]auth mdl email is ok');
       bcrypt
         .hash(password, 10)
         .then((hashedPassword) => {
@@ -86,7 +85,7 @@ const register = (body) => {
               if (err) return reject(err);
               return resolve({
                 status: 200,
-                result: {msg: 'Register success.', userId, email},
+                result: {msg: 'Register success.', data: {userId, email}},
               });
             });
           });
@@ -136,7 +135,10 @@ const login = (body) => {
         };
         jwt.sign(payload, process.env.SECRET_KEY, jwtOptions, (err, token) => {
           if (err) reject(err);
-          resolve({status: 200, result: {token}});
+          resolve({
+            status: 200,
+            result: {msg: 'Login Success.', data: {token}},
+          });
         });
       });
     });

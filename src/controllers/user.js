@@ -26,7 +26,7 @@ const uploadProfilePicture = (req, res) => {
       });
     })
     .catch((err) => {
-      resHelper.error(res, 500, {errorMsg: 'Error while uploading.', err});
+      resHelper.error(res, 500, {errMsg: 'Error while uploading.', err});
     });
 };
 

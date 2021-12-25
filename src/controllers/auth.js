@@ -9,7 +9,7 @@ const register = (req, res) => {
       return resHelper.success(res, status, result);
     })
     .catch((err) => {
-      resHelper.error(res, 500, err);
+      resHelper.error(res, 500, {errMsg: 'Register failed.', err});
     });
 };
 
@@ -22,8 +22,7 @@ const login = (req, res) => {
     })
     .catch((err) => {
       resHelper.error(res, 500, {
-        msg: `Login Failed. Check your email/username and password.`,
-        err,
+        errMsg: `Login Failed. Check your email/username and password.`,
       });
     });
 };

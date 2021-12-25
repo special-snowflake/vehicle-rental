@@ -9,12 +9,18 @@ const addcity = (req, res) => {
     .modelAddcity(city)
     .then(({status, result}) => {
       sendResponse.success(res, status, {
-        msg: 'New city Added',
-        id: result.insertId,
+        msg: 'New city Added.',
+        data: {
+          id: result.insertId,
+          city,
+        },
       });
     })
     .catch((err) => {
-      sendResponse.error(res, 500, {msg: 'Something went wrong.', err});
+      sendResponse.error(res, 500, {
+        errMsg: 'Something went wrong. Add city failed.',
+        err,
+      });
     });
 };
 
@@ -25,30 +31,34 @@ const getcity = (req, res) => {
     .modelGetcity(filter)
     .then(({status, result}) => {
       if (status == 204) {
-        sendResponse.success(res, status, {msg: 'City is empty'});
+        sendResponse.success(res, status, {msg: 'City is empty', data: ''});
       }
-      sendResponse.success(res, status, {msg: 'City', result});
+      sendResponse.success(res, status, {
+        msg: 'City',
+        meta: {totalData: result.length},
+        data: result,
+      });
     })
     .catch((err) =>
-      sendResponse.error(res, 500, {msg: 'Something went wrong', err})
+      sendResponse.error(res, 500, {errMsg: 'Something went wrong.', err})
     );
 };
 
 const updatecity = (req, res) => {
   cityModel
     .modelUpdatecity(req.body.city, req.body.id)
-    .then(({status, result}) => {
-      if (status == 200) {
-        sendResponse.success(res, status, {
-          msg: 'Data successfully updated',
+    .then(({status}) => {
+      sendResponse.success(res, status, {
+        msg: 'Data successfully updated',
+        data: {
           city: req.body.city,
           id: req.body.id,
-        });
-      }
+        },
+      });
     })
     .catch((err) => {
       sendResponse.error(res, 500, {
-        msg: 'Something when wrong',
+        errMsg: 'Something when wrong',
         err,
       });
     });
@@ -58,18 +68,25 @@ const deletecity = (req, res) => {
   const id = req.body.id;
   cityModel
     .modelDeletecity(id)
-    .then(({status, result}) => {
+    .then(({status}) => {
       if (status == 209) {
-        return sendResponse.success(res, status, {msg: 'No data deleted'});
+        return sendResponse.success(res, status, {
+          msg: 'Data already deleted.',
+          data: {
+            id,
+          },
+        });
       }
       sendResponse.success(res, status, {
-        msg: 'Delete city success',
-        id,
+        msg: 'City deleted.',
+        data: {
+          id,
+        },
       });
     })
     .catch((err) => {
       sendResponse.error(res, 500, {
-        msg: 'Something when wrong',
+        errMsg: 'Something when wrong.',
         err,
       });
     });

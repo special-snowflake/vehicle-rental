@@ -10,11 +10,14 @@ const addCategory = (req, res) => {
     .then(({status, result}) => {
       sendResponse.success(res, status, {
         msg: 'New Category Added',
-        id: result.insertId,
+        data: {
+          id: result.insertId,
+          category,
+        },
       });
     })
     .catch((err) => {
-      sendResponse.error(res, 500, {msg: 'Something went wrong.', err});
+      sendResponse.error(res, 500, {errMsg: 'Adding category failed.', err});
     });
 };
 
@@ -25,30 +28,37 @@ const getCategory = (req, res) => {
     .modelGetCategory(filter)
     .then(({status, result}) => {
       if (status == 204) {
-        sendResponse.success(res, status, {msg: 'Category is empty'});
+        sendResponse.success(res, status, {
+          msg: 'Category is empty.',
+          data: '',
+        });
       }
-      sendResponse.success(res, status, {msg: 'Category', result});
+      sendResponse.success(res, status, {
+        msg: 'Category',
+        meta: {totalData: result.length},
+        data: result,
+      });
     })
     .catch((err) =>
-      sendResponse.error(res, 500, {msg: 'Something went wrong', err})
+      sendResponse.error(res, 500, {errMsg: 'Something went wrong.', err})
     );
 };
 
 const updateCategory = (req, res) => {
   categoryModel
     .modelUpdateCategory(req.body.category, req.body.id)
-    .then(({status, result}) => {
-      if (status == 200) {
-        sendResponse.success(res, status, {
-          msg: 'Data successfully updated',
+    .then(({status}) => {
+      sendResponse.success(res, status, {
+        msg: 'Data successfully updated',
+        data: {
           category: req.body.category,
           id: req.body.id,
-        });
-      }
+        },
+      });
     })
     .catch((err) => {
       sendResponse.error(res, 500, {
-        msg: 'Something when wrong',
+        errMsg: 'Something went wrong',
         err,
       });
     });
@@ -60,13 +70,13 @@ const deleteCategory = (req, res) => {
     .modelDeleteCategory(id)
     .then(({status, result}) => {
       return sendResponse.success(res, status, {
-        msg: 'Delete category success',
-        id,
+        msg: 'Category deteled.',
+        data: {id},
       });
     })
     .catch((err) => {
       sendResponse.error(res, 500, {
-        msg: 'Something when wrong',
+        errMsg: 'Something when wrong',
         err,
       });
     });
