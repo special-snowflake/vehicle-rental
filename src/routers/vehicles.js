@@ -10,14 +10,23 @@ vehiclesRouter.get('/search', controllerVehicles.searchVehicles);
 vehiclesRouter.get('/:category', controllerVehicles.getVehicles);
 vehiclesRouter.get('/detail/:id', controllerVehicles.getDetailByID);
 
-vehiclesRouter.post('/', uploadMulti, controllerVehicles.addNewVehicle);
+vehiclesRouter.post(
+  '/',
+  auth.authorizeAdmin,
+  uploadMulti,
+  controllerVehicles.addNewVehicle
+);
 
+/*
 vehiclesRouter.patch(
   '/',
   auth.authorizeAdmin,
   middleVehicles.getDataForUpdate,
   controllerVehicles.updateVehicle
 );
+*/
+
+vehiclesRouter.patch('/', uploadMulti, controllerVehicles.updateVehicle);
 
 vehiclesRouter.delete(
   '/',

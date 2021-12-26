@@ -154,7 +154,11 @@ const getDetailByID = (id) => {
     JOIN category ct ON ct.id = v.category_id 
     WHERE v.id = ?`;
     db.query(sqlQuery, [id], (err, result) => {
-      modelHelp.rejectOrResolve(err, result, resolve, reject);
+      if (err) return reject(err);
+      return resolve({
+        status: 200,
+        result: {msg: `Detail Vehicle Id ${id}`, data: result},
+      });
     });
   });
 };
@@ -381,10 +385,7 @@ const addNewVehicle = (req) => {
               `../vehicle-rental/media/vehicle-images/${element}`,
               (err) => {
                 if (err) {
-                  resolve({
-                    staus: 500,
-                    result: {errMsg: 'Error occur while deleting images.', err},
-                  });
+                  return reject(err);
                 }
               }
             );
@@ -405,12 +406,36 @@ const addNewVehicle = (req) => {
 
 const deleteVehicle = (id) => {
   return new Promise((resolve, reject) => {
+    const sqlGetImages = `SELECT image FROM vehicle_images WHERE vehicle_id=?`;
+    const sqlDeleteImg = `DELETE FROM vehicle_images WHERE vehicle_id = ?`;
     const sqlQuery = `DELETE FROM vehicles where id = ?`;
-    db.query(sqlQuery, [id], (err, result) => {
-      if (err) {
-        return reject(err);
-      }
-      return resolve({status: 200, result});
+    db.query(sqlGetImages, [id], (err, result) => {
+      if (err) return reject(err);
+      const images = [];
+      result.forEach((element) => {
+        images.push(element);
+      });
+      db.query(sqlDeleteImg, [id], (err, result) => {
+        if (err) return reject(err);
+        db.query(sqlQuery, [id], (err, result) => {
+          console.log('[db]images:', images);
+          if (err) return reject(err);
+          if (images.length !== 0) {
+            images.forEach((element) => {
+              console.log('[db]element:', element);
+              fs.unlink(`${element.image}`, (err) => {
+                if (err) {
+                  return reject(err);
+                }
+              });
+            });
+          }
+          return resolve({
+            status: 200,
+            result: {msg: 'Vehicle deleted', data: {id}},
+          });
+        });
+      });
     });
   });
 };

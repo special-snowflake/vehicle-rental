@@ -20,7 +20,7 @@ const getDetailByID = (req, res) => {
   vehiclesModel
     .getDetailByID(params.id)
     .then(({status, result}) => {
-      if (result.length == 0) {
+      if (result.data.length == 0) {
         return resHelper.success(res, status, {
           msg: `Vehicle with id ${params.id} cannot be found.`,
         });
