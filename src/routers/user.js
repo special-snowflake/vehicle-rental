@@ -7,31 +7,15 @@ const auth = require('../middlewares/authorize');
 const middleUser = require('../middlewares/user');
 const controllerUser = require('../controllers/user');
 
-userRouter.get('/:username', controllerUser.getUserByUnsername);
+userRouter.get('/detail/:id', controllerUser.getUserById);
 userRouter.get('/', controllerUser.getUserByName);
-
-userRouter.post(
-  '/photo',
-  auth.authorizeAllUser,
-  upload,
-  controllerUser.uploadProfilePicture
-);
-
-/*
-userRouter.patch(
-  '/photo',
-  auth.authorizeAllUser,
-  upload,
-  controllerUser.updateProfilePicture
-);
-*/
 
 userRouter.patch(
   '/',
   auth.authorizeAllUser,
   upload,
   middleUser.getDataUserForUpdate,
-  controllerUser.updateUser
+  controllerUser.updateUser,
 );
 
 userRouter.delete('/', auth.authorizeAdmin, controllerUser.deleteUser);

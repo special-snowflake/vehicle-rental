@@ -3,55 +3,6 @@ const db = require('../config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-// const register = (body, photo) => {
-//   return new Promise((resolve, reject) => {
-//     let password = body.password;
-//     const username = body.username;
-//     const roles = body.roles;
-//     const sqlInsertUser = `INSERT INTO users SET ?;`;
-//     const sqlInsertUserAccess = `INSERT INTO user_access
-//     (user_id, username, password, roles)
-//     VALUES (?, ?, ?, ?);`;
-//     bcrypt
-//       .hash(body.password, 10)
-//       .then((hashedPassword) => {
-//         password = hashedPassword;
-//         const {
-//           first_name,
-//           last_name,
-//           bod,
-//           sex,
-//           email,
-//           phone,
-//           address,
-//           join_date,
-//         } = body;
-//         const bodyUpdate = {
-//           first_name,
-//           last_name,
-//           bod,
-//           sex,
-//           email,
-//           phone,
-//           address,
-//           join_date,
-//           photo,
-//         };
-//         db.query(sqlInsertUser, [bodyUpdate], (err, result) => {
-//           if (err) return reject(err);
-//           const prepare = [result.insertId, username, password, roles];
-//           db.query(sqlInsertUserAccess, prepare, (err, result) => {
-//             if (err) return reject(err);
-//             resolve({status: 201, result});
-//           });
-//         });
-//       })
-//       .catch((err) => {
-//         reject(err);
-//       });
-//   });
-// };
-
 const register = (body) => {
   return new Promise((resolve, reject) => {
     const firstName = body.name;
@@ -61,7 +12,7 @@ const register = (body) => {
     const sqlInserUser = `INSERT INTO users (first_name, email)
     VALUES (?, ?)`;
     const sqlInsertUserAccess = `INSERT INTO user_access 
-    (user_id,password) VALUES (?,?)`;
+    (user_id,password,roles) VALUES (?,?,?)`;
     db.query(sqlCheckEmail, [email], (err, result) => {
       if (err) return reject(err);
       if (result.length !== 0) {
@@ -79,7 +30,11 @@ const register = (body) => {
             if (err) return reject(err);
             console.log('[db]auth insert users is ok');
             const userId = result.insertId;
-            const preparUserAccess = [result.insertId, hashedPassword];
+            const preparUserAccess = [
+              result.insertId,
+              hashedPassword,
+              'customer',
+            ];
             db.query(sqlInsertUserAccess, preparUserAccess, (err, result) => {
               console.log('[db]auth insert ua is ok');
               if (err) return reject(err);
@@ -104,7 +59,9 @@ const login = (body) => {
     const sqlGetPassword = `SELECT * FROM user_access ua 
     JOIN users u ON u.id = ua.user_id
     WHERE ua.username = ? OR u.email = ?`;
+    console.log(user);
     db.query(sqlGetPassword, [user, user], (err, result) => {
+      const data = result[0];
       if (err) {
         return reject(err);
       }
@@ -117,17 +74,14 @@ const login = (body) => {
         });
       }
       const passwordHased = result[0].password;
-      bcrypt.compare(password, passwordHased, (err, res) => {
+      bcrypt.compare(password, passwordHased, (err, result) => {
         if (err) return reject(err);
-        if (!res) {
-          return reject(err);
-        }
         const payload = {
-          id: result[0].user_id,
-          email: result[0].email,
-          username: result[0].username,
-          name: result[0].first_name + ' ' + result[0].last_name,
-          roles: result[0].roles,
+          id: data.user_id,
+          email: data.email,
+          username: data.username,
+          name: data.first_name + ' ' + data.last_name,
+          roles: data.roles,
         };
         const jwtOptions = {
           expiresIn: '15m',

@@ -23,6 +23,7 @@ const login = (req, res) => {
     .catch((err) => {
       resHelper.error(res, 500, {
         errMsg: `Login Failed. Check your email/username and password.`,
+        err,
       });
     });
 };

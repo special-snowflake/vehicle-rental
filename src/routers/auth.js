@@ -8,7 +8,7 @@ const authController = require('../controllers/auth');
 authRouter.post(
   '/register',
   validate.validateRegister,
-  authController.register
+  authController.register,
 );
 authRouter.post('/', validate.validateLogin, authController.login);
 authRouter.delete('/', auth.authorizeAllUser, authController.logout);

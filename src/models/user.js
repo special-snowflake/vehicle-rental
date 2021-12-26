@@ -1,7 +1,6 @@
 const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
-const fs = require('fs');
 
 const searchUserByName = (query) => {
   return new Promise((resolve, reject) => {
@@ -62,14 +61,6 @@ const searchUserByName = (query) => {
       } else {
         nextPage = null;
       }
-      // const nextPage =
-      //   nPage != null
-      //     ? '/user?name=' + name + '&limit=' + limit + '&page=' + nPage
-      //     : null;
-      // const previousPage =
-      //   pPage != null
-      //     ? '/user?name=' + name + '&limit=' + limit + '&page=' + pPage
-      //     : null;
       db.query(mysqlQuery, prepare, (err, result) => {
         if (err) return reject(err);
         const meta = {
@@ -102,61 +93,19 @@ const deleteUser = (id) => {
   });
 };
 
-const uploadProfilePicture = (id, filename) => {
+const getUserById = (id) => {
   return new Promise((resolve, reject) => {
-    const sqlSelect = `SELECT photo FROM users WHERE id = ?`;
+    const sqlSelect = `SELECT * FROM users WHERE id = ?`;
     db.query(sqlSelect, [id], (err, result) => {
       if (err) return reject(err);
-      if (result[0].photo !== null) {
-        fs.unlink(`../vehicle-rental/media/images/${filename}`, (err) => {
-          if (err) {
-            resolve({
-              staus: 200,
-              result: {msg: 'Error occur while deleting old photo.', err},
-            });
-          }
-        });
-        return resolve({
-          status: 403,
-          result: {
-            msg: 'Photo already exist, use update profile picture, instead.',
-          },
-        });
-      }
-      const sqlUploadPhoto = `UPDATE users SET photo = ? WHERE id = ?`;
-      db.query(sqlUploadPhoto, [filename, id], (err, result) => {
-        modelHelp.rejectOrResolve(err, result, resolve, reject);
-      });
-      modelHelp.rejectOrResolve(err, result, resolve, reject);
-    });
-  });
-};
-
-const updateProfilePicture = (id, filename) => {
-  return new Promise((resolve, reject) => {
-    const sqlGetPrevPhoto = `SELECT photo from users where id = ?`;
-    db.query(sqlGetPrevPhoto, [id], (err, result) => {
-      if (err) return reject(err);
-      if (result.length == 0) {
-        return resolve({
-          status: 401,
-          result: {msg: 'Please upload before updating'},
-        });
-      }
-      const photo = result[0].photo;
-      db.query(sqlUploadPhoto, [filename, id], (err, result) => {
-        fs.unlink(`../vehicle-rental/media/images/${photo}`, (err) => {
-          if (err) {
-            resolve({
-              staus: 200,
-              result: {msg: 'Error occur while deleting old photo.', err},
-            });
-          }
-        });
-        modelHelp.rejectOrResolve(err, result, resolve, reject);
+      return resolve({
+        status: 200,
+        result: {
+          msg: `User Id ${id}`,
+          data: result,
+        },
       });
     });
-    const sqlUploadPhoto = `UPDATE users SET photo = ? WHERE id = ?`;
   });
 };
 
@@ -181,8 +130,7 @@ const updateUser = (body, id) => {
 module.exports = {
   searchUserByName,
   deleteUser,
-  uploadProfilePicture,
-  updateProfilePicture,
+  getUserById,
   getUserPhoto,
   updateUser,
 };

@@ -9,7 +9,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 
 const logger = morgan(
-  ':method :url :status :res[content-length] - :response-time ms'
+  ':method :url :status :res[content-length] - :response-time ms',
 );
 
 app.use('/vehicles', express.static(path.join(__dirname, 'media')));
@@ -20,34 +20,24 @@ app.listen(port, () => {
   console.log(`Server is running in port : ${port}`);
 });
 
-// const options = {
-//   dotfiles: 'ignore', // allow, deny, ignore
-//   etag: true,
-//   extensions: ['htm', 'html'],
-//   index: false, // to disable directory indexing
-//   maxAge: '7d',
-//   redirect: false,
-//   setHeaders: function (res, path, stat) {
-//     res.set('x-timestamp', Date.now());
-//   },
-// };
-app.options('/*', (req, res) => {
-  const corsHeader = {
-    'Access-Control-Allow-Origin': 'http://localhost:8000',
-    'Access-Control-Allow-Methods': [
-      'GET',
-      'POST',
-      'PATCH',
-      'DELETE',
-      'OPTIONS',
-    ],
-    'Access-Control-Allow-Headers': 'x-authorized-token',
-  };
-  res.set(corsHeader);
-  res.status(204);
-});
+const whitelist = [
+  'http://127.0.0.1:5500',
+  'http://localhost:8000',
+  'http://vehicle-rental.netlify.app',
+];
 
-console.log(__dirname);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (whitelist.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  }),
+);
 
 app.use(helmet());
 app.use(bodyParser.json());

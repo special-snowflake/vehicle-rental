@@ -1,8 +1,5 @@
-const db = require('../config/db.js');
-
 const modelUser = require('../models/user');
 const resHelper = require('../helpers/sendResponse');
-const {grabLocalYMD} = require('../helpers/collection');
 
 const uploadProfilePicture = (req, res) => {
   if (!req.isPassFilter) {
@@ -57,41 +54,23 @@ const updateProfilePicture = (req, res) => {
     });
 };
 
-const getUserByUsername = (req, res) => {
-  const {params} = req;
-  const username = params.username;
-  const sqlQuery = `SELECT 
-      a.username, 
-      u.first_name, 
-      u.last_name, 
-      u.bod, 
-      u.sex, 
-      u.email, 
-      u.email, 
-      u.address, 
-      u.join_date 
-      FROM 
-      user_access a JOIN 
-      users u ON a.user_id = u.id
-      WHERE a.username = ? `;
-  db.query(sqlQuery, [username], (err, result) => {
-    if (err) return res.status(500).json({msg: 'Something went wrong', err});
-    if (result.length == 0) {
-      return res.status(404).json({msg: `User cannot be found`});
-    }
-    const bod = result[0].bod,
-      join_date = result[0].join_date;
-    const sex =
-      result[0].sex == 'M' ? 'Male' : result[0].sex == 'F' ? 'Female' : '';
-    let searchResult = result;
-    searchResult = {
-      ...searchResult[0],
-      bod: grabLocalYMD(bod),
-      join_date: grabLocalYMD(join_date),
-      sex,
-    };
-    return res.status(200).json(searchResult);
-  });
+const getUserById = (req, res) => {
+  const {
+    params: {id},
+  } = req;
+  modelUser
+    .getUserById(id)
+    .then(({status, result}) => {
+      if (result.data.length == 0) {
+        return resHelper.success(res, 404, {
+          errMsg: `User Id ${id} cannot be found.`,
+        });
+      }
+      return resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      return resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
+    });
 };
 
 const getUserByName = (req, res) => {
@@ -115,9 +94,9 @@ const updateUser = (req, res) => {
   const {bodyUpdate, isPassFilter, payload} = req;
   console.log('[db] ctrl updt usr photo:', bodyUpdate);
   if (!isPassFilter && req.file) {
-    return resHelper.success(res, 422, {
+    return resHelper.success(res, 400, {
       result: {
-        msg: 'File should be an image in either format (png, jpg, jpeg)',
+        errMsg: 'File should be an image in either format (png, jpg, jpeg).',
       },
     });
   }
@@ -125,7 +104,8 @@ const updateUser = (req, res) => {
   modelUser
     .updateUser(bodyUpdate, id)
     .then(({status, result}) => {
-      return resHelper.success(res, status, {result: {bodyUpdate, id}});
+      const results = {msg: 'User updated.', data: {id, ...bodyUpdate}};
+      return resHelper.success(res, status, results);
     })
     .catch((err) => {
       resHelper.error(res, 500, err);
@@ -150,7 +130,7 @@ const deleteUser = (req, res) => {
 };
 
 module.exports = {
-  getUserByUnsername: getUserByUsername,
+  getUserById,
   updateUser,
   getUserByName,
   deleteUser,

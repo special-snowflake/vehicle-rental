@@ -5,7 +5,6 @@ const {
   checkingPatchWithData,
   checkingPatchDate,
 } = require('../helpers/collection');
-const {rejects} = require('assert');
 
 const checkUsername = (req, res, next) => {
   const {
@@ -52,7 +51,7 @@ const getDataUserForUpdate = (req, res, next) => {
         msg: 'Id is unidentified.',
       });
     }
-    let bodyUpdate = [];
+    const bodyUpdate = [];
     bodyUpdate[0] = result[0];
     console.log('[db] unupdated :', bodyUpdate);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'first_name', firstName);
@@ -71,13 +70,15 @@ const getDataUserForUpdate = (req, res, next) => {
       console.log('[db] mid use new photo name', photo);
       const oldPhoto = bodyUpdate[0].photo;
       console.log('old photo', oldPhoto);
-      fs.unlink(`../vehicle-rental/media/${oldPhoto}`, (err) => {
-        if (err) {
-          return res
-            .status(500)
-            .json({errMsg: 'Error occured while deleting photo.'});
-        }
-      });
+      if (oldPhoto) {
+        fs.unlink(`../vehicle-rental/media/${oldPhoto}`, (err) => {
+          if (err) {
+            return res
+              .status(500)
+              .json({errMsg: 'Error occured while deleting photo.'});
+          }
+        });
+      }
       bodyUpdate[0] = {
         ...bodyUpdate[0],
         photo,
@@ -107,9 +108,9 @@ const validateRegister = (req, res, next) => {
   console.log(req);
   const isBodyValid =
     registerBody.filter((property) => !bodyProperty.includes(property))
-      .length == 0
-      ? true
-      : false;
+      .length == 0 ?
+      true :
+      false;
   console.log(isBodyValid);
   if (!isBodyValid) return res.status(400).json({msg: 'Invalid Body'});
   next();
