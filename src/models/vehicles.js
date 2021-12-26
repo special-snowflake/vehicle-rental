@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
+const checkVehicleUpdate = require('../helpers/checkVehicleUpdate');
 const fs = require('fs');
 
 const getVehicles = (category) => {
@@ -62,8 +63,8 @@ const getAllVehicles = (query) => {
     let {orderBy, sort, limit, page} = query;
     let offset = '';
     const sqlCount = `SELECT count(*) count FROM vehicles`;
-    const sqlShowData = `SELECT 
-    v.id, c.city, ct.category, v.model, v.brand, 
+    const sqlShowData = `SELECT
+    v.id, c.city, ct.category, v.model, v.brand,
     v.capacity, v.price FROM vehicles v
     JOIN city c ON v.city_id = c.id
     JOIN category ct ON v.category_id = ct.id
@@ -148,16 +149,26 @@ const getDataForUpdate = (id) => {
 
 const getDetailByID = (id) => {
   return new Promise((resolve, reject) => {
-    const sqlQuery = `SELECT v.id, ct.category, v.brand, v.model,
-     v.capacity, v.price, v.status, c.city  
-    FROM vehicles v JOIN city c ON c.id = v.city_id 
-    JOIN category ct ON ct.id = v.category_id 
-    WHERE v.id = ?`;
-    db.query(sqlQuery, [id], (err, result) => {
+    const sqlGetImages = `SELECT image FROM vehicle_images WHERE vehicle_id=?`;
+    db.query(sqlGetImages, [id], (err, result) => {
       if (err) return reject(err);
-      return resolve({
-        status: 200,
-        result: {msg: `Detail Vehicle Id ${id}`, data: result},
+      const images = [];
+      result.forEach((element) => {
+        images.push(element.image);
+      });
+      console.log(images);
+      const sqlQuery = `SELECT v.id, ct.category, v.brand, v.model,
+      v.capacity, v.price, v.status, c.city  
+      FROM vehicles v JOIN city c ON c.id = v.city_id 
+      JOIN category ct ON ct.id = v.category_id 
+      WHERE v.id = ?`;
+      db.query(sqlQuery, [id], (err, result) => {
+        if (err) return reject(err);
+        result = {...result[0], ...{images}};
+        return resolve({
+          status: 200,
+          result: {msg: `Detail Vehicle Id ${id}`, data: result},
+        });
       });
     });
   });
@@ -307,8 +318,19 @@ const searchVehicles = (query) => {
   });
 };
 
-const updateVehicle = (params) => {
+const updateVehicle = (req) => {
+  console.log('[db] inside mdl vch upt');
   return new Promise((resolve, reject) => {
+    console.log('[db] inside mdl vch upt promise');
+    console.log('[db] req.body', req.body);
+    const {
+      body: {id},
+    } = req;
+    const newImages = req.images;
+    const getImages = `SELECT image from vehicle_images WHERE id=? LIMIT ?`;
+    const deleteImages = `DELETE FROM vehicle_images 
+    WHERE vehicle_id = ? LIMIT ?`;
+    const getOldData = `SELECT * FROM vehicles WHERE id = ?`;
     const sqlQuery = `
     UPDATE vehicles SET 
     category_id = ?,
@@ -320,8 +342,71 @@ const updateVehicle = (params) => {
     status = ?,
     stock = ?
     WHERE id = ?;`;
-    db.query(sqlQuery, params, (err, result) => {
-      modelHelp.rejectOrResolve(err, result, resolve, reject);
+    db.query(getImages, [id, newImages.length], (err, result) => {
+      console.log('[db] inside new images');
+      if (err) {
+        return reject(err);
+      }
+      const oldImages = [];
+      result.forEach((element) => {
+        oldImages.push(element);
+      });
+      db.query(deleteImages, [id, newImages.length], (err, result) => {
+        console.log('[db] inside delete images');
+        if (err) {
+          return reject(err);
+        }
+        let values = `VALUES`;
+        const prepareImages = [];
+        newImages.forEach((element, index) => {
+          if (index !== newImages.length - 1) {
+            values += ` (?,?), `;
+          } else {
+            values += ` (?,?) `;
+          }
+          prepareImages.push(id, element);
+          console.log(element);
+        });
+        const queryImages = `INSERT INTO vehicle_images (vehicle_id, image) 
+        ${values}`;
+        db.query(queryImages, prepareImages, (err, result) => {
+          if (err) {
+            return reject(err);
+          }
+          db.query(getOldData, [id], (err, result) => {
+            if (err) {
+              return reject(err);
+            }
+            console.log('[db] result', result);
+            console.log('[db] body', req.body);
+            const dataUpdate = checkVehicleUpdate(req.body, result[0]);
+            console.log('new data', dataUpdate);
+            db.query(sqlQuery, dataUpdate, (err, result) => {
+              if (err) {
+                return reject(err);
+              }
+              return resolve({
+                status: 200,
+                result: {
+                  msg: 'Vehicle Updated.',
+                  data: {
+                    id,
+                    categoryId: dataUpdate[0],
+                    cityId: dataUpdate[1],
+                    brand: dataUpdate[2],
+                    model: dataUpdate[3],
+                    capacity: dataUpdate[4],
+                    price: dataUpdate[5],
+                    status: dataUpdate[6],
+                    stock: dataUpdate[7],
+                    images: newImages,
+                  },
+                },
+              });
+            });
+          });
+        });
+      });
     });
   });
 };
@@ -353,10 +438,7 @@ const addNewVehicle = (req) => {
             `../vehicle-rental/media/vehicle-images/${element}`,
             (err) => {
               if (err) {
-                resolve({
-                  staus: 500,
-                  result: {errMsg: 'Error occur while deleting images.', err},
-                });
+                return reject(err);
               }
             }
           );
@@ -406,9 +488,9 @@ const addNewVehicle = (req) => {
 
 const deleteVehicle = (id) => {
   return new Promise((resolve, reject) => {
-    const sqlGetImages = `SELECT image FROM vehicle_images WHERE vehicle_id=?`;
     const sqlDeleteImg = `DELETE FROM vehicle_images WHERE vehicle_id = ?`;
     const sqlQuery = `DELETE FROM vehicles where id = ?`;
+    const sqlGetImages = `SELECT image FROM vehicle_images WHERE vehicle_id=?`;
     db.query(sqlGetImages, [id], (err, result) => {
       if (err) return reject(err);
       const images = [];

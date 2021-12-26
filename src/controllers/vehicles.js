@@ -13,7 +13,6 @@ const getVehicles = (req, res) => {
     });
 };
 
-
 const getDetailByID = (req, res) => {
   console.log('something');
   const {params} = req;
@@ -37,9 +36,14 @@ const searchVehicles = (req, res) => {
   vehiclesModel
     .searchVehicles(query)
     .then(({status, result}) => {
-      resHelper.success(res, status, result);
+      return resHelper.success(res, status, result);
     })
     .catch((err) => {
+      if (err.errno == 1054) {
+        return resHelper.error(res, 400, {
+          errMsg: 'Invalid orderBy, please check your input.',
+        });
+      }
       resHelper.error(res, 500, err);
     });
 };
@@ -56,37 +60,11 @@ const addNewVehicle = (req, res) => {
 };
 
 const updateVehicle = (req, res) => {
-  const {
-    bodyUpdate: {
-      id,
-      category_id,
-      city_id,
-      brand,
-      model,
-      capacity,
-      price,
-      status,
-      stock,
-    },
-  } = req;
-  const params = [
-    category_id,
-    city_id,
-    brand,
-    model,
-    capacity,
-    price,
-    status,
-    stock,
-    id,
-  ];
+  console.log('[db] inside ctlr updt', req.images);
   vehiclesModel
-    .updateVehicle(params, req)
-    .then(({status, _result}) => {
-      return resHelper.success(res, status, {
-        msg: 'Vehicle successfully updated.',
-        data: req.bodyUpdate,
-      });
+    .updateVehicle(req)
+    .then(({status, result}) => {
+      return resHelper.success(res, status, result);
     })
     .catch((err) => {
       resHelper.error(res, 500, err);
@@ -99,14 +77,11 @@ const deleteVehicle = (req, res) => {
   } = req;
   vehiclesModel
     .deleteVehicle(id)
-    .then(({status}) => {
-      return resHelper.success(res, status, {
-        msg: 'Vehicle deleted',
-        id,
-      });
+    .then(({status, result}) => {
+      return resHelper.success(res, status, result);
     })
     .catch((err) => {
-      resHelper.error(res, 500, {msg: 'Something went wrong', err});
+      resHelper.error(res, 500, {errMsg: 'Something went wrong', err});
     });
 };
 

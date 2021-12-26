@@ -8,9 +8,11 @@ const storage = multer.diskStorage({
     cb(null, '../vehicle-rental/media/vehicle-images/');
   },
   filename: (req, file, cb) => {
-    const {
+    let {
       body: {city, category},
     } = req;
+    if (!city) city = 0;
+    if (!category) category = 0;
     const fileName = `vhc-img-${city}-${category}-${Date.now()}${path.extname(
       file.originalname
     )}`;
@@ -41,7 +43,7 @@ const multerOption = {
 const getImagePath = (files) => {
   const imagePath = [];
   files.forEach((element) => {
-    const path = `${element.destination}${element.filename}`;
+    const path = `/vehicle-images/${element.filename}`;
     imagePath.push(path);
   });
   return imagePath;
@@ -50,8 +52,9 @@ const getImagePath = (files) => {
 const upload = multer(multerOption).array('images', 3);
 const multerHandler = (req, res, next) => {
   upload(req, res, (err) => {
+    console.log('[db] inside multer upload');
     if (err) {
-      console.log(err);
+      console.log('error found', err);
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(400).json({
           errMsg: `Image size mustn't be bigger than 2MB!`,
@@ -70,10 +73,12 @@ const multerHandler = (req, res, next) => {
       });
     }
     const images = getImagePath(req.files);
+    console.log('[db]umlter images', req.files);
     if (images.length === 0) {
       return res.status(400).json({errMsg: 'Please add an Image.'});
     }
     req.images = images;
+    console.log('db req images', req.images);
     next();
   });
 };

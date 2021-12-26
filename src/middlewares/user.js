@@ -5,6 +5,7 @@ const {
   checkingPatchWithData,
   checkingPatchDate,
 } = require('../helpers/collection');
+const {rejects} = require('assert');
 
 const checkUsername = (req, res, next) => {
   const {
@@ -36,7 +37,6 @@ const getDataUserForUpdate = (req, res, next) => {
     body: {firstName, lastName, bod, sex, email, phone, address},
   } = req;
   console.log('[db middleware user file]:', typeof file, file);
-  // console.log('[db] user middle update photo:', photo);
   const sqlQuery = `SELECT first_name, 
   last_name, bod, sex, email, phone, address, 
   photo FROM users WHERE id = ?`;
@@ -65,18 +65,17 @@ const getDataUserForUpdate = (req, res, next) => {
     let photo = null;
     if (file !== undefined) {
       console.log('[db] inside file undefined');
-      photo = file.filename;
+      photo = '/images/' + file.filename;
     }
     if (photo !== null) {
       console.log('[db] mid use new photo name', photo);
       const oldPhoto = bodyUpdate[0].photo;
       console.log('old photo', oldPhoto);
-      fs.unlink(`../vehicle-rental/media/images/${oldPhoto}`, (err) => {
+      fs.unlink(`../vehicle-rental/media/${oldPhoto}`, (err) => {
         if (err) {
-          return resolve({
-            staus: 200,
-            result: {msg: 'Error occur while deleting photo.', err},
-          });
+          return res
+            .status(500)
+            .json({errMsg: 'Error occured while deleting photo.'});
         }
       });
       bodyUpdate[0] = {
