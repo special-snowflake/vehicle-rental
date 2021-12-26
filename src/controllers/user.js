@@ -57,7 +57,7 @@ const updateProfilePicture = (req, res) => {
     });
 };
 
-const getUserByUnsername = (req, res) => {
+const getUserByUsername = (req, res) => {
   const {params} = req;
   const username = params.username;
   const sqlQuery = `SELECT 
@@ -99,7 +99,7 @@ const getUserByName = (req, res) => {
   modelUser
     .searchUserByName(query)
     .then(({status, result}) => {
-      if (result.result.length == 0) {
+      if (result.data.length == 0) {
         return resHelper.success(res, status, {
           msg: `0 user found with that name.`,
         });
@@ -150,7 +150,7 @@ const deleteUser = (req, res) => {
 };
 
 module.exports = {
-  getUserByUnsername,
+  getUserByUnsername: getUserByUsername,
   updateUser,
   getUserByName,
   deleteUser,

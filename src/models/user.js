@@ -5,16 +5,31 @@ const fs = require('fs');
 
 const searchUserByName = (query) => {
   return new Promise((resolve, reject) => {
+    let previousPage = `/user?`;
+    let nextPage = `/user?`;
     let {name, page, limit} = query;
+    if (name & (name !== '')) {
+      previousPage += `name=${name}&`;
+      nextPage += `name=${name}&`;
+    } else {
+      previousPage += `name&`;
+      nextPage += `name&`;
+    }
     if (!limit) {
       limit = 5;
+    } else {
+      limit = +limit;
     }
+    previousPage += `limit=${limit}&`;
+    nextPage += `limit=${limit}&`;
     if (!page) {
-      page = '1';
+      page = 1;
       offset = 0;
     } else {
-      offset = (+page - 1) * +limit;
+      page = +page;
+      offset = (page - 1) * limit;
     }
+    console.log('[db]', offset, page, limit);
     let keyword = `%%`;
     if (name !== '' && name) {
       keyword = `%${name}%`;
@@ -37,17 +52,36 @@ const searchUserByName = (query) => {
       const nextOffset = +offset + +limit;
       const nPage = nextOffset > count ? null : +page + 1;
       const pPage = page > 1 ? +page - 1 : null;
-      const nextPage =
-        nPage != null
-          ? '/user?name=' + name + '&&limit=' + limit + '&&page=' + nPage
-          : null;
-      const previousPage =
-        pPage != null
-          ? '/user?name=' + name + '&&limit=' + limit + '&&page=' + pPage
-          : null;
+      if (pPage !== null) {
+        previousPage += `page=${pPage}`;
+      } else {
+        previousPage = null;
+      }
+      if (nPage !== null) {
+        nextPage += `page=${nPage}`;
+      } else {
+        nextPage = null;
+      }
+      // const nextPage =
+      //   nPage != null
+      //     ? '/user?name=' + name + '&limit=' + limit + '&page=' + nPage
+      //     : null;
+      // const previousPage =
+      //   pPage != null
+      //     ? '/user?name=' + name + '&limit=' + limit + '&page=' + pPage
+      //     : null;
       db.query(mysqlQuery, prepare, (err, result) => {
         if (err) return reject(err);
-        resolve({status: 200, result: {previousPage, page, nextPage, result}});
+        const meta = {
+          totalData: count,
+          previousPage,
+          page,
+          nextPage,
+        };
+        resolve({
+          status: 200,
+          result: {msg: 'User search result.', meta, data: result},
+        });
       });
     });
   });
