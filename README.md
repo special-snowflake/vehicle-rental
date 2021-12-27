@@ -7,7 +7,7 @@ This is a backend model for Vehicle Rental bussiness.
 - PATCH
 - DELETE
 
-### Tools Used in This App
+## Tools Used in This App
 - Node.js
 - Postman
 - MySQL
@@ -16,4 +16,5 @@ NPM Packages:
 - EXPRESS
 - MULTER
 - MySQL
+
 Please open package.json to check other dependencies.

@@ -1,4 +1,3 @@
-const {config} = require('dotenv');
 const multer = require('multer');
 const path = require('path');
 
@@ -14,7 +13,7 @@ const storage = multer.diskStorage({
     if (!city) city = 0;
     if (!category) category = 0;
     const fileName = `vhc-img-${city}-${category}-${Date.now()}${path.extname(
-      file.originalname
+      file.originalname,
     )}`;
     cb(null, fileName);
   },
@@ -33,7 +32,7 @@ const multerOption = {
     } else {
       cb(null, false);
       const err = new Error('Only .png, .jpg and .jpeg format allowed!');
-      err.code = 'WRONG_EXSTENTION';
+      err.code = 'WRONG_EXSTENSION';
       return cb(err);
     }
   },
@@ -61,7 +60,7 @@ const multerHandler = (req, res, next) => {
           err: err.code,
         });
       }
-      if (err.code === 'WRONG_EXSTENTION') {
+      if (err.code === 'WRONG_EXSTENSION') {
         return res.status(400).json({
           errMsg: `Only .png, .jpg and .jpeg format allowed!`,
           err: err.code,
@@ -74,9 +73,6 @@ const multerHandler = (req, res, next) => {
     }
     const images = getImagePath(req.files);
     console.log('[db]umlter images', req.files);
-    if (images.length === 0) {
-      return res.status(400).json({errMsg: 'Please add an Image.'});
-    }
     req.images = images;
     console.log('db req images', req.images);
     next();
