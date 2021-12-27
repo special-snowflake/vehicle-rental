@@ -20,24 +20,18 @@ app.listen(port, () => {
   console.log(`Server is running in port : ${port}`);
 });
 
-const whitelist = [
-  'http://127.0.0.1:5500',
-  'http://localhost:8000',
-  'http://vehicle-rental.netlify.app',
-];
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (whitelist.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-  }),
-);
+const corsOption = {
+  origin: 'http://127.0.0.1:5500',
+};
+app.use(cors(corsOption));
+app.options('/*', (req, res) => {
+  const corsHeader = {
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE',
+    'Access-Control-Allow-Headers': 'x-authorized-token',
+  };
+  res.set(corsHeader);
+  res.status(204);
+});
 
 app.use(helmet());
 app.use(bodyParser.json());
