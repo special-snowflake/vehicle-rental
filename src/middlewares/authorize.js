@@ -64,6 +64,37 @@ const authorizeAdmin = (req, res, next) => {
   });
 };
 
+const authorizeOwner = (req, res, next) => {
+  const token = req.header('x-authorized-token');
+  const jwtOptions = {
+    issuer: process.env.ISSUER,
+  };
+  const sqlGetBlackList = `SELECT token FROM blacklist_token WHERE token = ?`;
+  db.query(sqlGetBlackList, [token], (err, result) => {
+    if (err) return resHelper.error(res, 500, err);
+    if (result.length !== 0) {
+      return resHelper.error(res, 403, {
+        errMsg: 'You need to login to perform this action.',
+      });
+    }
+    jwt.verify(token, process.env.SECRET_KEY, jwtOptions, (err, payload) => {
+      if (err) {
+        return resHelper.error(res, 403, {
+          errMsg: 'You need to login to perform this action.',
+        });
+      }
+      const {roles} = payload;
+      if (roles.toLowerCase() !== 'owner') {
+        return resHelper.error(res, 403, {
+          errMsg: 'You need to login as Owner to perform this action.',
+        });
+      }
+      req.payload = payload;
+      next();
+    });
+  });
+};
+
 const authorizeAllUser = (req, res, next) => {
   const token = req.header('x-authorized-token');
   const jwtOptions = {
@@ -89,4 +120,9 @@ const authorizeAllUser = (req, res, next) => {
   });
 };
 
-module.exports = {authorizeCustomer, authorizeAdmin, authorizeAllUser};
+module.exports = {
+  authorizeCustomer,
+  authorizeAdmin,
+  authorizeAllUser,
+  authorizeOwner,
+};

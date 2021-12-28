@@ -129,11 +129,24 @@ const deleteUser = (req, res) => {
   console.log(body);
 };
 
+const changeUserRoles = (req, res) => {
+  const {
+    body: {userId, roles},
+  } = req;
+  modelUser
+    .changeUserRoles(userId, roles)
+    .then(({status, result}) => {
+      resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {msg: 'Something went wrong.', err});
+    });
+};
+
 module.exports = {
   getUserById,
   updateUser,
   getUserByName,
   deleteUser,
-  uploadProfilePicture,
-  updateProfilePicture,
+  changeUserRoles,
 };

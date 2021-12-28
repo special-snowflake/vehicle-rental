@@ -18,7 +18,7 @@ const addNewTestimony = (historyId, rate, testimony, date) => {
       } else {
         const prepare = [historyId, rate, testimony, date];
         const sqlQuery = `INSERT INTO 
-          testimony ( history_id, rate, testimony, date_added) 
+          testimony ( history_id, rate, testimony, date_add) 
             VALUES (?, ?, ?, ?)`;
         db.query(sqlQuery, prepare, (err, result) => {
           if (err) {
@@ -50,7 +50,7 @@ const getTestimony = (req) => {
       console.log(orderBy);
       order =
         orderBy == 'date'
-          ? ' ORDER BY testimony.date_added '
+          ? ' ORDER BY testimony.date_add '
           : orderBy == 'rate'
           ? ' ORDER BY testimony.rate '
           : '';
@@ -62,7 +62,7 @@ const getTestimony = (req) => {
     const sqlQuery = `SELECT 
             testimony.id testiID,
             testimony.history_id historyID,
-            testimony.date_added, 
+            testimony.date_add, 
             testimony.rate,
             history.rental_date,
             history.return_date,
@@ -81,12 +81,12 @@ const getTestimony = (req) => {
         testimonyResult[index] = result[index];
         const rentalDate = grabLocalYMD(testimonyResult[index].rental_date);
         const returnDate = grabLocalYMD(testimonyResult[index].return_date);
-        const dateAdded = grabLocalYMD(testimonyResult[index].date_added);
+        const dateAdded = grabLocalYMD(testimonyResult[index].date_add);
         testimonyResult[index] = {
           ...testimonyResult[index],
           rental_date: rentalDate,
           return_date: returnDate,
-          date_added: dateAdded,
+          date_add: dateAdded,
         };
       });
       return resolve({

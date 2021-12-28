@@ -12,27 +12,23 @@ vehiclesRouter.get('/detail/:id', controllerVehicles.getDetailByID);
 
 vehiclesRouter.post(
   '/',
-  auth.authorizeAdmin,
+  auth.authorizeOwner,
   uploadMulti,
-  controllerVehicles.addNewVehicle
+  controllerVehicles.addNewVehicle,
 );
 
-/*
 vehiclesRouter.patch(
   '/',
-  auth.authorizeAdmin,
-  middleVehicles.getDataForUpdate,
-  controllerVehicles.updateVehicle
+  auth.authorizeOwner,
+  uploadMulti,
+  controllerVehicles.updateVehicle,
 );
-*/
-
-vehiclesRouter.patch('/', uploadMulti, controllerVehicles.updateVehicle);
 
 vehiclesRouter.delete(
   '/',
   auth.authorizeAdmin,
   middleVehicles.getDataForDelete,
-  controllerVehicles.deleteVehicle
+  controllerVehicles.deleteVehicle,
 );
 
 module.exports = vehiclesRouter;

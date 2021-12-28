@@ -8,6 +8,7 @@ const middleUser = require('../middlewares/user');
 const controllerUser = require('../controllers/user');
 
 userRouter.get('/detail/:id', controllerUser.getUserById);
+
 userRouter.get('/', controllerUser.getUserByName);
 
 userRouter.patch(
@@ -16,6 +17,12 @@ userRouter.patch(
   upload,
   middleUser.getDataUserForUpdate,
   controllerUser.updateUser,
+);
+
+userRouter.patch(
+  '/roles',
+  auth.authorizeAdmin,
+  controllerUser.changeUserRoles,
 );
 
 userRouter.delete('/', auth.authorizeAdmin, controllerUser.deleteUser);
