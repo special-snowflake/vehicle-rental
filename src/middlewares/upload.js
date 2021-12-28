@@ -10,7 +10,7 @@ const storage = multer.diskStorage({
     const {payload} = req;
     const id = payload.id;
     const fileName = `${file.fieldname}-${id}-${Date.now()}${path.extname(
-      file.originalname
+      file.originalname,
     )}`;
     cb(null, fileName);
   },
@@ -37,6 +37,7 @@ const multerOption = {
 const upload = multer(multerOption).single('profilePicture');
 const multerHandler = (req, res, next) => {
   upload(req, res, (err) => {
+    console.log(req.payload);
     console.log('[inside] inside ulterHandler');
     if (err && err.code === 'LIMIT_FILE_SIZE') {
       return res

@@ -1,4 +1,3 @@
-const {reject} = require('bcrypt/promises');
 const mysql = require('mysql');
 const db = require('../config/db');
 const {grabLocalYMD} = require('../helpers/collection');
@@ -49,11 +48,11 @@ const getTestimony = (req) => {
       const orderBy = req.query.orderBy;
       console.log(orderBy);
       order =
-        orderBy == 'date'
-          ? ' ORDER BY testimony.date_add '
-          : orderBy == 'rate'
-          ? ' ORDER BY testimony.rate '
-          : '';
+        orderBy == 'date'?
+         ' ORDER BY testimony.date_add ' :
+          orderBy == 'rate' ?
+          ' ORDER BY testimony.rate ' :
+          '';
     }
     let sort = '';
     if (req.query.sort) {

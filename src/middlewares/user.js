@@ -32,12 +32,13 @@ const checkUsername = (req, res, next) => {
 const getDataUserForUpdate = (req, res, next) => {
   const {payload, file} = req;
   const id = payload.id;
+  console.log(id);
   const {
-    body: {firstName, lastName, bod, sex, email, phone, address},
+    body: {firstName, lastName, dob, sex, email, phone, address},
   } = req;
   console.log('[db middleware user file]:', typeof file, file);
   const sqlQuery = `SELECT first_name, 
-  last_name, bod, sex, email, phone, address, 
+  last_name, dob, sex, email, phone, address, 
   photo FROM users WHERE id = ?`;
   db.query(sqlQuery, [id], (err, result) => {
     if (err) {
@@ -56,7 +57,7 @@ const getDataUserForUpdate = (req, res, next) => {
     console.log('[db] unupdated :', bodyUpdate);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'first_name', firstName);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'last_name', lastName);
-    bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'bod', bod);
+    bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'dob', dob);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'sex', sex);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'email', email);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'phone', phone);
@@ -95,7 +96,7 @@ const validateRegister = (req, res, next) => {
   const registerBody = [
     'first_name',
     'last_name',
-    'bod',
+    'dob',
     'sex',
     'email',
     'address',

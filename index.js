@@ -21,7 +21,7 @@ app.listen(port, () => {
 });
 
 const corsOption = {
-  origin: 'http://127.0.0.1:5500',
+  origin: 'http://127.0.0.1:5000',
 };
 app.use(cors(corsOption));
 app.options('/*', (req, res) => {

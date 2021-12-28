@@ -1,7 +1,8 @@
+/* eslint-disable camelcase */
 const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
-const checkVehicleUpdate = require('../helpers/checkVehicleUpdate');
+// const checkVehicleUpdate = require('../helpers/checkVehicleUpdate');
 const fs = require('fs');
 
 const getVehicles = (category) => {
@@ -135,13 +136,13 @@ const searchVehicles = (query) => {
     cityId = cityId == '' || !cityId ? '%%' : `%${cityId}%`;
 
     nextPage +=
-      categoryId == '' || !categoryId ?
-        `categoryId=&` :
-        `categoryId=${categoryId}&`;
+      categoryId == '' || !categoryId
+        ? `categoryId=&`
+        : `categoryId=${categoryId}&`;
     previousPage +=
-      categoryId == '' || !categoryId ?
-        `categoryId=&` :
-        `categoryId=${categoryId}&`;
+      categoryId == '' || !categoryId
+        ? `categoryId=&`
+        : `categoryId=${categoryId}&`;
     categoryId = categoryId == '' || !categoryId ? '%%' : `%${categoryId}%`;
 
     nextPage += brand == '' || !brand ? `brand=&` : `brand=${brand}&`;
@@ -153,13 +154,13 @@ const searchVehicles = (query) => {
     model = model == '' || !model ? '%%' : `%${model}%`;
 
     nextPage +=
-      minCapacity == '' || !minCapacity ?
-        `minCapacity=` :
-        `minCapacity=${minCapacity}`;
+      minCapacity == '' || !minCapacity
+        ? `minCapacity=`
+        : `minCapacity=${minCapacity}`;
     previousPage +=
-      minCapacity == '' || !minCapacity ?
-        `minCapacity=` :
-        `minCapacity=${minCapacity}`;
+      minCapacity == '' || !minCapacity
+        ? `minCapacity=`
+        : `minCapacity=${minCapacity}`;
     minCapacity = minCapacity == '' || !minCapacity ? '1' : minCapacity;
 
     const prepare = [
@@ -210,7 +211,7 @@ const searchVehicles = (query) => {
           '&limit=' +
           limit +
           '&page=' +
-          nPage;
+          pPage;
       }
       const meta = {
         totalData: count,
@@ -238,94 +239,61 @@ const searchVehicles = (query) => {
 };
 
 const updateVehicle = (req) => {
-  console.log('[db] inside mdl vch upt');
   return new Promise((resolve, reject) => {
-    console.log('[db] inside mdl vch upt promise');
-    console.log('[db] req.body', req.body);
-    const {
-      body: {id},
-    } = req;
-    const newImages = req.images;
-    const getImages = `SELECT image from vehicle_images WHERE id=? LIMIT ?`;
-    const deleteImages = `DELETE FROM vehicle_images 
-    WHERE vehicle_id = ? LIMIT ?`;
-    const getOldData = `SELECT * FROM vehicles WHERE id = ?`;
-    const sqlQuery = `
-    UPDATE vehicles SET 
-    category_id = ?,
-    city_id = ?,
-    brand = ?,
-    model = ?,
-    capacity = ?,
-    price = ?,
-    status = ?,
-    stock = ?
-    WHERE id = ?;`;
-    db.query(getImages, [id, newImages.length], (err, result) => {
-      console.log('[db] inside new images');
+    const {params, images} = req;
+    let {body} = req;
+    const totalImages = images.length;
+    const id = params.id;
+    console.log('body:', body);
+    console.log('param:', params);
+    console.log('images:', images);
+    const sqlUpdate = `UPDATE vehicles SET ? WHERE id = ?`;
+    db.query(sqlUpdate, [body, id], (err, _result) => {
       if (err) {
+        if (images.length !== 0) {
+          deleteImages(images, reject);
+        }
         return reject(err);
       }
-      const oldImages = [];
-      result.forEach((element) => {
-        oldImages.push(element);
-      });
-      db.query(deleteImages, [id, newImages.length], (err, result) => {
-        console.log('[db] inside delete images');
+      if (images.length === 0) {
+        return resolve({
+          status: 200,
+          result: {msg: 'Update vehicle success.', data: body},
+        });
+      }
+      const sqlDeleteImages = `DELETE FROM vehicle_images
+      WHERE vehicle_id = ? LIMIT ?`;
+      db.query(sqlDeleteImages, [id, totalImages], (err, result) => {
         if (err) {
+          if (images.length !== 0) {
+            deleteImages(images, reject);
+          }
           return reject(err);
         }
         let values = `VALUES`;
         const prepareImages = [];
-        let queryImages = 'SELECT id FROM vehicle_images WHERE id = 0';
-        if (newImages.length !== 0) {
-          newImages.forEach((element, index) => {
-            if (index !== newImages.length - 1) {
-              values += ` (?,?), `;
-            } else {
-              values += ` (?,?) `;
-            }
-            prepareImages.push(id, element);
-            console.log(element);
-          });
-          queryImages = `INSERT INTO vehicle_images (vehicle_id, image) 
-          ${values}`;
-        }
+        images.forEach((element, index) => {
+          if (index !== images.length - 1) {
+            values += ` (?,?), `;
+          } else {
+            values += ` (?,?) `;
+          }
+          prepareImages.push(id, element);
+          console.log(element);
+        });
+        const queryImages = `INSERT INTO vehicle_images (vehicle_id, image) 
+        ${values}`;
         db.query(queryImages, prepareImages, (err, result) => {
           if (err) {
+            if (images.length !== 0) {
+              deleteImages(images, reject);
+            }
             return reject(err);
           }
-          db.query(getOldData, [id], (err, result) => {
-            if (err) {
-              return reject(err);
-            }
-            console.log('[db] result', result);
-            console.log('[db] body', req.body);
-            const dataUpdate = checkVehicleUpdate(req.body, result[0]);
-            console.log('new data', dataUpdate);
-            db.query(sqlQuery, dataUpdate, (err, result) => {
-              if (err) {
-                return reject(err);
-              }
-              return resolve({
-                status: 200,
-                result: {
-                  msg: 'Vehicle Updated.',
-                  data: {
-                    id,
-                    categoryId: dataUpdate[0],
-                    cityId: dataUpdate[1],
-                    brand: dataUpdate[2],
-                    model: dataUpdate[3],
-                    capacity: dataUpdate[4],
-                    price: dataUpdate[5],
-                    status: dataUpdate[6],
-                    stock: dataUpdate[7],
-                    images: newImages,
-                  },
-                },
-              });
-            });
+          body = {...body, ...{images: images}};
+          return resolve({
+            status: 200,
+            result: {msg: 'Update vehicle success.', data: body},
           });
         });
       });
@@ -335,39 +303,33 @@ const updateVehicle = (req) => {
 
 const addNewVehicle = (req) => {
   return new Promise((resolve, reject) => {
-    const {
-      body: {brand, model, capacity, price, status, stock, category, city},
-    } = req;
-    const prepare = [
-      category,
-      city,
-      brand,
-      model,
-      capacity,
-      price,
-      status,
-      stock,
-    ];
+    let {body, payload} = req;
+    const user_id = payload.id;
+    console.log('payload', payload);
+    console.log('body before', body);
+    body = {...body, ...{user_id}};
+    console.log('body after', body);
+    // const {
+    //   body: {brand, model, capacity, price, status, stock, category, city},
+    // } = req;
+    // const prepare = [
+    //   category,
+    //   city,
+    //   brand,
+    //   model,
+    //   capacity,
+    //   price,
+    //   status,
+    //   stock,
+    // ];
     const images = req.images;
     if (images.length === 0) {
       return resolve({status: 400, result: {errMsg: 'Please add an Image.'}});
     }
-    const sqlQuery = `
-    INSERT INTO vehicles 
-    ( category_id, city_id, brand, model, capacity, price, status, stock) 
-    VALUES ( ?, ?, ?, ?, ?, ?, ?, ?);`;
-    db.query(sqlQuery, prepare, (err, result) => {
+    const sqlQuery = `INSERT INTO vehicles SET ?`;
+    db.query(sqlQuery, body, (err, result) => {
       if (err) {
-        images.forEach((element) => {
-          fs.unlink(
-            `../vehicle-rental/media/vehicle-images/${element}`,
-            (err) => {
-              if (err) {
-                return reject(err);
-              }
-            },
-          );
-        });
+        deleteImages(images, reject);
         return reject(err);
       }
       const id = result.insertId;
@@ -387,23 +349,16 @@ const addNewVehicle = (req) => {
       ${values}`;
       db.query(queryImages, prepareImages, (err, result) => {
         if (err) {
-          images.forEach((element) => {
-            fs.unlink(
-              `../vehicle-rental/media/vehicle-images/${element}`,
-              (err) => {
-                if (err) {
-                  return reject(err);
-                }
-              },
-            );
-          });
+          deleteImages(images, reject);
           return reject(err);
         }
+        const id = result.insertId;
+        body = {...{id}, ...body, ...{images}};
         return resolve({
           status: 200,
           result: {
             msg: 'New Vehicle Added.',
-            data: {id, brand, model, capacity, price, status, stock, images},
+            data: body,
           },
         });
       });
@@ -418,8 +373,9 @@ const deleteVehicle = (id) => {
       if (err) return reject(err);
       const images = [];
       result.forEach((element) => {
-        images.push(element);
+        images.push(element.image);
       });
+      console.log(images);
       const sqlDeleteImg = `DELETE FROM vehicle_images WHERE vehicle_id = ?`;
       db.query(sqlDeleteImg, [id], (err, result) => {
         if (err) return reject(err);
@@ -430,16 +386,12 @@ const deleteVehicle = (id) => {
           if (images.length !== 0) {
             images.forEach((element) => {
               console.log('[db]element:', element);
-              fs.unlink(`${element.image}`, (err) => {
-                if (err) {
-                  return reject(err);
-                }
-              });
+              deleteImages(images, reject);
             });
           }
           return resolve({
             status: 200,
-            result: {msg: 'Vehicle deleted', data: {id}},
+            result: {msg: 'Vehicle deleted.', data: {id}},
           });
         });
       });
@@ -461,6 +413,16 @@ const checkInputCity = (city) => {
     const sqlQuery = `SELECT id FROM city WHERE city = ?`;
     db.query(sqlQuery, [city], (err, result) => {
       modelHelp.rejectOrResolve(err, result, resolve, reject);
+    });
+  });
+};
+
+const deleteImages = (images, reject) => {
+  images.forEach((element) => {
+    fs.unlink(`../vehicle-rental/media/${element}`, (err) => {
+      if (err) {
+        return reject(err);
+      }
     });
   });
 };

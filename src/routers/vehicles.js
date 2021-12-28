@@ -18,7 +18,7 @@ vehiclesRouter.post(
 );
 
 vehiclesRouter.patch(
-  '/',
+  '/:id',
   auth.authorizeOwner,
   uploadMulti,
   controllerVehicles.updateVehicle,
@@ -26,8 +26,7 @@ vehiclesRouter.patch(
 
 vehiclesRouter.delete(
   '/',
-  auth.authorizeAdmin,
-  middleVehicles.getDataForDelete,
+  auth.authorizeOwner,
   controllerVehicles.deleteVehicle,
 );
 

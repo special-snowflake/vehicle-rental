@@ -1,59 +1,6 @@
 const modelUser = require('../models/user');
 const resHelper = require('../helpers/sendResponse');
 
-const uploadProfilePicture = (req, res) => {
-  if (!req.isPassFilter) {
-    return resHelper.success(res, 422, {
-      result: {
-        msg: 'File should be an image in either format (png, jpg, jpeg)',
-      },
-    });
-  }
-  const {payload, file} = req;
-  const id = payload.id;
-  const filename = file.filename;
-  modelUser
-    .uploadProfilePicture(id, filename)
-    .then(({status, result}) => {
-      if (status == 403) return resHelper.success(res, status, result);
-      return resHelper.success(res, status, {
-        msg: 'Upload photo profile success.',
-        id,
-        filename,
-      });
-    })
-    .catch((err) => {
-      resHelper.error(res, 500, {errMsg: 'Error while uploading.', err});
-    });
-};
-
-const updateProfilePicture = (req, res) => {
-  if (!req.isPassFilter) {
-    return resHelper.success(res, 422, {
-      result: {
-        msg: 'File should be an image in either format (png, jpg, jpeg)',
-      },
-    });
-  }
-  const {payload, file} = req;
-  const id = payload.id;
-  const filename = file.filename;
-  modelUser
-    .updateProfilePicture(id, filename)
-    .then(({status}) => {
-      return resHelper.success(res, status, {
-        msg: 'Update photo profile success.',
-        result: {
-          id,
-          filename,
-        },
-      });
-    })
-    .catch((err) => {
-      resHelper.error(res, 500, {errorMsg: 'Error while updating.', err});
-    });
-};
-
 const getUserById = (req, res) => {
   const {
     params: {id},

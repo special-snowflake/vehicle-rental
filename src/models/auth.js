@@ -56,12 +56,15 @@ const register = (body) => {
 const login = (body) => {
   return new Promise((resolve, reject) => {
     const {user, password} = body;
-    const sqlGetPassword = `SELECT * FROM user_access ua 
+    const sqlGetPassword = `SELECT u.id, u.email, u.first_name, 
+    u.last_name, ua.username, ua.password, ua.roles 
+    FROM user_access ua 
     JOIN users u ON u.id = ua.user_id
     WHERE ua.username = ? OR u.email = ?`;
     console.log(user);
     db.query(sqlGetPassword, [user, user], (err, result) => {
       const data = result[0];
+      console.log(data);
       if (err) {
         return reject(err);
       }
@@ -74,15 +77,22 @@ const login = (body) => {
         });
       }
       const passwordHased = result[0].password;
+      console.log('db hash pass', passwordHased, password);
       bcrypt.compare(password, passwordHased, (err, result) => {
         if (err) return reject(err);
+        if (result === false) {
+          const error = new Error('Wrong user/password');
+          return reject(error.message);
+        }
         const payload = {
-          id: data.user_id,
+          id: data.id,
           email: data.email,
           username: data.username,
           name: data.first_name + ' ' + data.last_name,
           roles: data.roles,
         };
+
+        console.log(payload);
         const jwtOptions = {
           expiresIn: '15m',
           issuer: process.env.ISSUER,
