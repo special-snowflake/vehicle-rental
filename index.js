@@ -21,13 +21,13 @@ app.listen(port, () => {
 });
 
 const corsOption = {
-  origin: 'http://127.0.0.1:5000',
+  origin: 'http://localhost:3000',
 };
 app.use(cors(corsOption));
 app.options('/*', (req, res) => {
   const corsHeader = {
     'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE',
-    'Access-Control-Allow-Headers': 'x-authorized-token',
+    'Access-Control-Allow-Headers': ['x-authorized-token', 'content-type'],
   };
   res.set(corsHeader);
   res.status(204);

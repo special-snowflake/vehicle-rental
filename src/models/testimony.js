@@ -59,14 +59,19 @@ const getTestimony = (req) => {
       sort = req.query.sort == 'desc' ? 'DESC' : 'ASC';
     }
     const sqlQuery = `SELECT 
-            testimony.id testiID,
-            testimony.history_id historyID,
-            testimony.date_add, 
-            testimony.rate,
-            history.rental_date,
-            history.return_date,
-            testimony.testimony 
-            FROM testimony JOIN history ON testimony.history_id = history.id`;
+    testimony.id testiID,
+    testimony.history_id historyID,
+    users.full_name,
+    testimony.date_add, 
+    users.id as user_id,
+    users.photo as image,
+    testimony.rate,
+    history.rental_date,
+    history.return_date,
+    testimony.testimony 
+    FROM testimony 
+    JOIN history ON testimony.history_id = history.id
+    JOIN users ON users.id = history.user_id`;
     console.log(order, 'here');
     db.query(sqlQuery + order + sort, (err, result) => {
       if (err) {

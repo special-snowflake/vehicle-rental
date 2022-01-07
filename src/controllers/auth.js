@@ -3,6 +3,7 @@ const resHelper = require('../helpers/sendResponse');
 
 const register = (req, res) => {
   const {body} = req;
+  console.log(body);
   authModel
     .register(body)
     .then(({status, result}) => {

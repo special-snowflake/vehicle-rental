@@ -9,7 +9,7 @@ const register = (body) => {
     const email = body.email;
     const password = body.password;
     const sqlCheckEmail = `SELECT email from users where email = ?`;
-    const sqlInserUser = `INSERT INTO users (first_name, email)
+    const sqlInserUser = `INSERT INTO users (full_name, email)
     VALUES (?, ?)`;
     const sqlInsertUserAccess = `INSERT INTO user_access 
     (user_id,password,roles) VALUES (?,?,?)`;
@@ -56,8 +56,8 @@ const register = (body) => {
 const login = (body) => {
   return new Promise((resolve, reject) => {
     const {user, password} = body;
-    const sqlGetPassword = `SELECT u.id, u.email, u.first_name, 
-    u.last_name, ua.username, ua.password, ua.roles 
+    const sqlGetPassword = `SELECT u.id, u.email, u.full_name, 
+    ua.username, ua.password, ua.roles, u.photo
     FROM user_access ua 
     JOIN users u ON u.id = ua.user_id
     WHERE ua.username = ? OR u.email = ?`;
@@ -72,7 +72,7 @@ const login = (body) => {
         return resolve({
           status: 401,
           result: {
-            msg: 'Login Failed. Check your email/username and password.',
+            errMsg: 'Login Failed. Check your email/username and password.',
           },
         });
       }
@@ -88,7 +88,8 @@ const login = (body) => {
           id: data.id,
           email: data.email,
           username: data.username,
-          name: data.first_name + ' ' + data.last_name,
+          name: data.full_name,
+          image: data.photo,
           roles: data.roles,
         };
 

@@ -13,9 +13,11 @@ const getVehicles = (category) => {
       msg = 'Popular in Town:';
       sqlQuery = `
       SELECT h.vehicle_id, ct.city, c.category, v.brand,
-      v.model, v.capacity, v.price
+      v.model, v.capacity, v.price, 
+      (SELECT image FROM vehicle_images WHERE vehicle_id = h.vehicle_id) 
+      as image
       FROM history h 
-      LEFT join testimony t ON h.id = t.history_id 
+      LEFT JOIN testimony t ON h.id = t.history_id 
       JOIN vehicles v ON v.id = h.vehicle_id
       JOIN city ct ON v.city_id = ct.id
       JOIN category c ON v.category_id = c.id
@@ -31,7 +33,9 @@ const getVehicles = (category) => {
       keyword = category;
       msg = `Popular ${category}`;
       sqlQuery = `SELECT h.vehicle_id, ct.city, c.category, v.brand,
-      v.model, v.capacity, v.price
+      v.model, v.capacity, v.price, 
+      (SELECT image FROM vehicle_images WHERE vehicle_id = h.vehicle_id) 
+      as image
       from history h 
       LEFT join testimony t ON h.id = t.history_id 
       JOIN vehicles v ON v.id = h.vehicle_id
@@ -39,8 +43,7 @@ const getVehicles = (category) => {
       JOIN category c ON v.category_id = c.id
       WHERE c.category = ?
       GROUP BY h.vehicle_id 
-      ORDER BY (0.5*avg(coalesce(t.rate,0))+(1-0.5)*count(h.vehicle_id)) DESC
-      LIMIT 10`;
+      ORDER BY (0.5*avg(coalesce(t.rate,0))+(1-0.5)*count(h.vehicle_id)) DESC`;
     }
     db.query(sqlQuery, [keyword], (err, result) => {
       if (err) {
@@ -78,7 +81,7 @@ const getDetailByID = (id) => {
       });
       console.log(images);
       const sqlQuery = `SELECT v.id, ct.category, v.brand, v.model,
-      v.capacity, v.price, v.status, c.city  
+      v.capacity, v.price, v.status, c.city, v.stock
       FROM vehicles v JOIN city c ON c.id = v.city_id 
       JOIN category ct ON ct.id = v.category_id 
       WHERE v.id = ?`;
@@ -136,13 +139,13 @@ const searchVehicles = (query) => {
     cityId = cityId == '' || !cityId ? '%%' : `%${cityId}%`;
 
     nextPage +=
-      categoryId == '' || !categoryId
-        ? `categoryId=&`
-        : `categoryId=${categoryId}&`;
+      categoryId == '' || !categoryId ?
+        `categoryId=&` :
+        `categoryId=${categoryId}&`;
     previousPage +=
-      categoryId == '' || !categoryId
-        ? `categoryId=&`
-        : `categoryId=${categoryId}&`;
+      categoryId == '' || !categoryId ?
+        `categoryId=&` :
+        `categoryId=${categoryId}&`;
     categoryId = categoryId == '' || !categoryId ? '%%' : `%${categoryId}%`;
 
     nextPage += brand == '' || !brand ? `brand=&` : `brand=${brand}&`;
@@ -154,13 +157,13 @@ const searchVehicles = (query) => {
     model = model == '' || !model ? '%%' : `%${model}%`;
 
     nextPage +=
-      minCapacity == '' || !minCapacity
-        ? `minCapacity=`
-        : `minCapacity=${minCapacity}`;
+      minCapacity == '' || !minCapacity ?
+        `minCapacity=` :
+        `minCapacity=${minCapacity}`;
     previousPage +=
-      minCapacity == '' || !minCapacity
-        ? `minCapacity=`
-        : `minCapacity=${minCapacity}`;
+      minCapacity == '' || !minCapacity ?
+        `minCapacity=` :
+        `minCapacity=${minCapacity}`;
     minCapacity = minCapacity == '' || !minCapacity ? '1' : minCapacity;
 
     const prepare = [
@@ -186,6 +189,7 @@ const searchVehicles = (query) => {
       const nextOffset = +offset + +limit;
       const nPage = nextOffset > count ? null : +page + 1;
       const pPage = page > 1 ? +page - 1 : null;
+      const totalPage = Math.ceil(count / +limit);
       console.log(nextPage, previousPage);
       if (nPage == null) {
         nextPage = null;
@@ -218,6 +222,7 @@ const searchVehicles = (query) => {
         previousPage,
         page,
         nextPage,
+        totalPage,
       };
       const sqlSearch = `SELECT v.id, v.model, v. brand, 
           v.stock, c.city, ct.category, v.price, v.capacity

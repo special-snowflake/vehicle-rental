@@ -1,6 +1,7 @@
 const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
+const {grabLocalYMD} = require('../helpers/collection');
 
 const searchUserByName = (query) => {
   return new Promise((resolve, reject) => {
@@ -34,16 +35,16 @@ const searchUserByName = (query) => {
       keyword = `%${name}%`;
     }
     console.log('keyword, name: ', keyword, name);
-    const prepare = [mysql.raw(keyword), mysql.raw(keyword), offset, limit];
+    const prepare = [mysql.raw(keyword), offset, limit];
     const sqlCount = `SELECT count(*) count FROM users 
     JOIN user_access u on users.id = u.user_id
-    WHERE first_name LIKE '?' or last_name LIKE '?'`;
-    const mysqlQuery = `SELECT users.id, users.first_name, users.last_name, 
+    WHERE full_name LIKE '?'`;
+    const mysqlQuery = `SELECT users.id, users.full_name, 
     users.sex, users.email, users.phone, users.address,
      users.join_at, u.username
      FROM users 
      JOIN user_access u on users.id = u.user_id
-     WHERE users.first_name LIKE '?' or users.last_name LIKE '?'
+     WHERE users.full_name LIKE '?'
       LIMIT ?, ?`;
     db.query(sqlCount, prepare, (err, result) => {
       if (err) return reject(err);
@@ -98,6 +99,10 @@ const getUserById = (id) => {
     const sqlSelect = `SELECT * FROM users WHERE id = ?`;
     db.query(sqlSelect, [id], (err, result) => {
       if (err) return reject(err);
+      const dob = grabLocalYMD(result[0].dob);
+      const joinAt = grabLocalYMD(result[0].join_at);
+      result = {...result[0], ...{dob, join_at: joinAt}};
+      console.log(dob, joinAt);
       return resolve({
         status: 200,
         result: {

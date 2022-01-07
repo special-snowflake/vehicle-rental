@@ -39,6 +39,7 @@ const getUserByName = (req, res) => {
 
 const updateUser = (req, res) => {
   const {bodyUpdate, isPassFilter, payload} = req;
+  console.log('this is payload', payload);
   console.log('[db] ctrl updt usr photo:', bodyUpdate);
   if (!isPassFilter && req.file) {
     return resHelper.success(res, 400, {

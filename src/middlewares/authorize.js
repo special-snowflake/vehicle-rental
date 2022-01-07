@@ -97,6 +97,7 @@ const authorizeOwner = (req, res, next) => {
 
 const authorizeAllUser = (req, res, next) => {
   const token = req.header('x-authorized-token');
+  console.log('token:', token);
   const jwtOptions = {
     issuer: process.env.ISSUER,
   };
