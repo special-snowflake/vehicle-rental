@@ -12,7 +12,7 @@ const getVehicles = (category) => {
     if (category.toLocaleLowerCase() === 'popular') {
       msg = 'Popular in Town:';
       sqlQuery = `
-      SELECT h.vehicle_id, ct.city, c.category, v.brand,
+      SELECT h.vehicle_id id, ct.city, c.category, v.brand,
       v.model, v.capacity, v.price, 
       (SELECT image FROM vehicle_images WHERE vehicle_id = h.vehicle_id) 
       as image
@@ -22,8 +22,7 @@ const getVehicles = (category) => {
       JOIN city ct ON v.city_id = ct.id
       JOIN category c ON v.category_id = c.id
       GROUP BY h.vehicle_id 
-      ORDER BY (0.5*avg(coalesce(t.rate,0))+(1-0.5)*count(h.vehicle_id)) DESC
-      LIMIT 10`;
+      ORDER BY (0.5*avg(coalesce(t.rate,0))+(1-0.5)*count(h.vehicle_id)) DESC`;
     }
     let keyword = ``;
     if (
@@ -32,10 +31,10 @@ const getVehicles = (category) => {
     ) {
       keyword = category;
       msg = `Popular ${category}`;
-      sqlQuery = `SELECT h.vehicle_id, ct.city, c.category, v.brand,
+      sqlQuery = `SELECT h.vehicle_id id, ct.city, c.category, v.brand,
       v.model, v.capacity, v.price, 
-      (SELECT image FROM vehicle_images WHERE vehicle_id = h.vehicle_id) 
-      as image
+      (SELECT image FROM vehicle_images 
+        WHERE vehicle_id = h.vehicle_id LIMIT 1) as image
       from history h 
       LEFT join testimony t ON h.id = t.history_id 
       JOIN vehicles v ON v.id = h.vehicle_id
@@ -100,6 +99,7 @@ const getDetailByID = (id) => {
 const searchVehicles = (query) => {
   return new Promise((resolve, reject) => {
     let {
+      keyword,
       cityId,
       categoryId,
       brand,
@@ -148,6 +148,11 @@ const searchVehicles = (query) => {
         `categoryId=${categoryId}&`;
     categoryId = categoryId == '' || !categoryId ? '%%' : `%${categoryId}%`;
 
+    nextPage += keyword == '' || !keyword ? `keyword=&` : `keyword=${keyword}&`;
+    previousPage +=
+      keyword == '' || !keyword ? `keyword=&` : `keyword=${keyword}&`;
+    keyword = keyword == '' || !keyword ? '%%' : `%${keyword}%`;
+
     nextPage += brand == '' || !brand ? `brand=&` : `brand=${brand}&`;
     previousPage += brand == '' || !brand ? `brand=&` : `brand=${brand}&`;
     brand = brand == '' || !brand ? '%%' : `%${brand}%`;
@@ -172,16 +177,19 @@ const searchVehicles = (query) => {
       brand,
       model,
       minCapacity,
+      keyword,
       mysql.raw(orderBy),
       mysql.raw(sort),
       offset,
       mysql.raw(limit),
     ];
     const sqlCount = `SELECT count(*) count 
-    FROM vehicles v JOIN city c ON v.city_id = c.id
+    FROM vehicles v 
+    JOIN city c ON v.city_id = c.id
     JOIN category ct ON v.category_id = ct.id
     WHERE v.city_id LIKE ? and v.category_id LIKE ? 
-    and v.brand LIKE ? and v.model LIKE ? and v.capacity >= ? `;
+    and v.brand LIKE ? and v.model LIKE ? and v.capacity >= ? 
+    and concat(v.brand, v.model, c.city, ct.category) LIKE ?`;
     db.query(sqlCount, prepare, (err, result) => {
       if (err) reject(err);
       const count = result[0].count;
@@ -225,11 +233,15 @@ const searchVehicles = (query) => {
         totalPage,
       };
       const sqlSearch = `SELECT v.id, v.model, v. brand, 
-          v.stock, c.city, ct.category, v.price, v.capacity
-          FROM vehicles v JOIN city c ON v.city_id = c.id
-          JOIN category ct ON v.category_id = ct.id
+          v.stock, c.city, ct.category, v.price, v.capacity,
+          (SELECT image FROM vehicle_images WHERE vehicle_id = v.id LIMIT 1) 
+          as image
+          FROM vehicles v 
+          JOIN city c ON v.city_id = c.id
+          JOIN category ct ON v.category_id = ct.id 
           WHERE v.city_id LIKE ? and v.category_id LIKE ? 
           and v.brand LIKE ? and v.model LIKE ? and v.capacity >= ? 
+          and concat(v.brand, v.model, c.city, ct.category) LIKE ?
           ORDER BY ? ?
           LIMIT ?, ?;`;
       db.query(sqlSearch, prepare, (err, result) => {

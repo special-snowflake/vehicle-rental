@@ -23,6 +23,7 @@ app.listen(port, () => {
 const corsOption = {
   origin: 'http://localhost:3000',
 };
+
 app.use(cors(corsOption));
 app.options('/*', (req, res) => {
   const corsHeader = {
