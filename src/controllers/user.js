@@ -33,7 +33,7 @@ const getUserByName = (req, res) => {
       return resHelper.success(res, status, result);
     })
     .catch((err) => {
-      resHelper.error(res, 500, {msg: 'Something went wrong', err});
+      resHelper.error(res, 500, {errMsg: 'Something went wrong', err});
     });
 };
 
@@ -52,11 +52,10 @@ const updateUser = (req, res) => {
   modelUser
     .updateUser(bodyUpdate, id)
     .then(({status, result}) => {
-      const results = {msg: 'User updated.', data: {id, ...bodyUpdate}};
-      return resHelper.success(res, status, results);
+      return resHelper.success(res, status, result);
     })
     .catch((err) => {
-      resHelper.error(res, 500, err);
+      return resHelper.error(res, 500, err);
     });
 };
 
@@ -72,9 +71,30 @@ const deleteUser = (req, res) => {
     })
     .catch((err) => {
       console.log('controller catch' + err);
-      resHelper.error(res, 500, {msg: 'Something went wrong', err});
+      resHelper.error(res, 500, {errMsg: 'Something went wrong', err});
     });
   console.log(body);
+};
+
+const changePassword = (req, res) => {
+  const {
+    body: {newPassword, oldPassword},
+  } = req;
+  if (newPassword === oldPassword) {
+    return resHelper.error(res, 401, {
+      errMsg: `New password cannot be the same as old password`,
+    });
+  }
+  const id = req.payload.id;
+  console.log(oldPassword, newPassword, id);
+  modelUser
+    .changePassword(oldPassword, newPassword, id)
+    .then(({status, result}) => {
+      return resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
+    });
 };
 
 const changeUserRoles = (req, res) => {
@@ -87,7 +107,7 @@ const changeUserRoles = (req, res) => {
       resHelper.success(res, status, result);
     })
     .catch((err) => {
-      resHelper.error(res, 500, {msg: 'Something went wrong.', err});
+      resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
     });
 };
 
@@ -97,4 +117,5 @@ module.exports = {
   getUserByName,
   deleteUser,
   changeUserRoles,
+  changePassword,
 };

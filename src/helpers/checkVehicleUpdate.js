@@ -1,5 +1,5 @@
 const checkVehicleUpdate = (body, oldData) => {
-  const {id, category, city, brand, model, capacity, price, status, stock} =
+  const {id, category, city, name, capacity, price, status, stock} =
     body;
   const dataUpdate = [];
   if (category !== '' && category) {
@@ -14,17 +14,17 @@ const checkVehicleUpdate = (body, oldData) => {
     dataUpdate.push(oldData.city_id);
   }
 
-  if (brand !== '' && brand) {
-    dataUpdate.push(brand);
+  if (name !== '' && name) {
+    dataUpdate.push(name);
   } else {
-    dataUpdate.push(oldData.brand);
+    dataUpdate.push(oldData.name);
   }
 
-  if (model !== '' && model) {
-    dataUpdate.push(model);
-  } else {
-    dataUpdate.push(oldData.model);
-  }
+  // if (model !== '' && model) {
+  //   dataUpdate.push(model);
+  // } else {
+  //   dataUpdate.push(oldData.model);
+  // }
 
   if (capacity !== '' && capacity) {
     dataUpdate.push(capacity);

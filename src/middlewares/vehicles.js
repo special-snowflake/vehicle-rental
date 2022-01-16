@@ -42,7 +42,7 @@ const checkInputCity = (req, res, next) => {
 
 const getDataForUpdate = (req, res, next) => {
   const {
-    body: {id, cityId, brand, model, capacity, price, status, stock},
+    body: {id, cityId, name, capacity, price, status, stock},
   } = req;
   const sqlQuery = `SELECT * FROM vehicles WHERE id = ?`;
   db.query(sqlQuery, [id], (err, result) => {
@@ -55,8 +55,8 @@ const getDataForUpdate = (req, res, next) => {
     const bodyUpdate = [];
     bodyUpdate[0] = result[0];
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'city_id', cityId);
-    bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'brand', brand);
-    bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'model', model);
+    bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'name', name);
+    // bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'model', model);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'capacity', capacity);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'price', price);
     bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'status', status);

@@ -29,7 +29,7 @@ const validateRegister = (req, res, next) => {
 
 const validateAddVehicle = (req, res, next) => {
   const {
-    body: {category, city, brand, model, capacity, price, status, stock},
+    body: {category, city, name, capacity, price, status, stock},
   } = req;
   console.log(req.body);
   if (
@@ -37,8 +37,7 @@ const validateAddVehicle = (req, res, next) => {
     category === '' ||
     !city ||
     city === '' ||
-    !brand ||
-    !model ||
+    !name ||
     !capacity ||
     capacity === '' ||
     !price ||

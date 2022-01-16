@@ -19,10 +19,12 @@ userRouter.patch(
   controllerUser.updateUser,
 );
 
+userRouter.patch('/roles', auth.authorizeAdmin, controllerUser.changeUserRoles);
+
 userRouter.patch(
-  '/roles',
-  auth.authorizeAdmin,
-  controllerUser.changeUserRoles,
+  '/change-password',
+  auth.authorizeAllUser,
+  controllerUser.changePassword,
 );
 
 userRouter.delete('/', auth.authorizeAdmin, controllerUser.deleteUser);

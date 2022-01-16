@@ -12,8 +12,8 @@ const getVehicles = (category) => {
     if (category.toLocaleLowerCase() === 'popular') {
       msg = 'Popular in Town:';
       sqlQuery = `
-      SELECT h.vehicle_id id, ct.city, c.category, v.brand,
-      v.model, v.capacity, v.price, 
+      SELECT h.vehicle_id id, ct.city, c.category,
+      v.name, v.price, 
       (SELECT image FROM vehicle_images WHERE vehicle_id = h.vehicle_id) 
       as image
       FROM history h 
@@ -31,8 +31,8 @@ const getVehicles = (category) => {
     ) {
       keyword = category;
       msg = `Popular ${category}`;
-      sqlQuery = `SELECT h.vehicle_id id, ct.city, c.category, v.brand,
-      v.model, v.capacity, v.price, 
+      sqlQuery = `SELECT h.vehicle_id id, ct.city, c.category,
+      v.name, v.price, 
       (SELECT image FROM vehicle_images 
         WHERE vehicle_id = h.vehicle_id LIMIT 1) as image
       from history h 
@@ -79,8 +79,9 @@ const getDetailByID = (id) => {
         images.push(element.image);
       });
       console.log(images);
-      const sqlQuery = `SELECT v.id, ct.category, v.brand, v.model,
-      v.capacity, v.price, v.status, c.city, v.stock
+      const sqlQuery = `SELECT v.id, ct.category, c.city,
+      v.name, v.category_id, v.city_id,
+      v.description, v.price, v.status,  v.stock
       FROM vehicles v JOIN city c ON c.id = v.city_id 
       JOIN category ct ON ct.id = v.category_id 
       WHERE v.id = ?`;
@@ -102,9 +103,8 @@ const searchVehicles = (query) => {
       keyword,
       cityId,
       categoryId,
-      brand,
-      model,
-      minCapacity,
+      name,
+      // minCapacity,
       orderBy,
       sort,
       limit,
@@ -125,7 +125,7 @@ const searchVehicles = (query) => {
       sort = ' ASC';
     }
     if (!limit) {
-      limit = '5';
+      limit = '10';
     }
     if (!page) {
       page = '1';
@@ -153,30 +153,31 @@ const searchVehicles = (query) => {
       keyword == '' || !keyword ? `keyword=&` : `keyword=${keyword}&`;
     keyword = keyword == '' || !keyword ? '%%' : `%${keyword}%`;
 
-    nextPage += brand == '' || !brand ? `brand=&` : `brand=${brand}&`;
-    previousPage += brand == '' || !brand ? `brand=&` : `brand=${brand}&`;
-    brand = brand == '' || !brand ? '%%' : `%${brand}%`;
+    nextPage += name == '' || !name ? `name=&` : `name=${name}&`;
+    previousPage += name == '' || !name ? `name=&` : `name=${name}&`;
+    name = name == '' || !name ? '%%' : `%${name}%`;
 
-    nextPage += model == '' || !model ? `model=&` : `model=${model}&`;
-    previousPage += model == '' || !model ? `model=&` : `model=${model}&`;
-    model = model == '' || !model ? '%%' : `%${model}%`;
+    // nextPage += model == '' || !model ? `model=&` : `model=${model}&`;
+    // previousPage += model == '' || !model ? `model=&` : `model=${model}&`;
+    // model = model == '' || !model ? '%%' : `%${model}%`;
 
-    nextPage +=
-      minCapacity == '' || !minCapacity ?
-        `minCapacity=` :
-        `minCapacity=${minCapacity}`;
-    previousPage +=
-      minCapacity == '' || !minCapacity ?
-        `minCapacity=` :
-        `minCapacity=${minCapacity}`;
-    minCapacity = minCapacity == '' || !minCapacity ? '1' : minCapacity;
+    // nextPage +=
+    //   minCapacity == '' || !minCapacity
+    //     ? `minCapacity=`
+    //     : `minCapacity=${minCapacity}`;
+    // previousPage +=
+    //   minCapacity == '' || !minCapacity
+    //     ? `minCapacity=`
+    //     : `minCapacity=${minCapacity}`;
+    // minCapacity = minCapacity == '' || !minCapacity ? '1' : minCapacity;
 
     const prepare = [
       cityId,
       categoryId,
-      brand,
-      model,
-      minCapacity,
+      name,
+      // brand,
+      // model,
+      // minCapacity,
       keyword,
       mysql.raw(orderBy),
       mysql.raw(sort),
@@ -188,10 +189,10 @@ const searchVehicles = (query) => {
     JOIN city c ON v.city_id = c.id
     JOIN category ct ON v.category_id = ct.id
     WHERE v.city_id LIKE ? and v.category_id LIKE ? 
-    and v.brand LIKE ? and v.model LIKE ? and v.capacity >= ? 
-    and concat(v.brand, v.model, c.city, ct.category) LIKE ?`;
+    and v.name LIKE ? and concat(v.name, c.city, ct.category) LIKE ?`;
     db.query(sqlCount, prepare, (err, result) => {
-      if (err) reject(err);
+      if (err) return reject(err);
+      console.log(err);
       const count = result[0].count;
       const sortSpliced = sort.slice(1, sort.length);
       const nextOffset = +offset + +limit;
@@ -232,19 +233,19 @@ const searchVehicles = (query) => {
         nextPage,
         totalPage,
       };
-      const sqlSearch = `SELECT v.id, v.model, v. brand, 
-          v.stock, c.city, ct.category, v.price, v.capacity,
+      const sqlSearch = `SELECT v.id, v.name, 
+          v.stock, c.city, ct.category, v.price,
           (SELECT image FROM vehicle_images WHERE vehicle_id = v.id LIMIT 1) 
           as image
           FROM vehicles v 
           JOIN city c ON v.city_id = c.id
           JOIN category ct ON v.category_id = ct.id 
           WHERE v.city_id LIKE ? and v.category_id LIKE ? 
-          and v.brand LIKE ? and v.model LIKE ? and v.capacity >= ? 
-          and concat(v.brand, v.model, c.city, ct.category) LIKE ?
+          and v.name LIKE ? and concat(v.name, c.city, ct.category) LIKE ?
           ORDER BY ? ?
           LIMIT ?, ?;`;
       db.query(sqlSearch, prepare, (err, result) => {
+        console.log(err);
         if (err) return reject(err);
         return resolve({
           status: 200,
@@ -369,7 +370,7 @@ const addNewVehicle = (req) => {
           deleteImages(images, reject);
           return reject(err);
         }
-        const id = result.insertId;
+        // const id = result.insertId;
         body = {...{id}, ...body, ...{images}};
         return resolve({
           status: 200,

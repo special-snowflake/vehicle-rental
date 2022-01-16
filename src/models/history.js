@@ -93,7 +93,7 @@ const modelAddHistory = (prepare) => {
 const modelGetHistory = (prepare) => {
   return new Promise((resolve, reject) => {
     const sqlQuery = `SELECT 
-    h.id, v.brand, v.model, 
+    h.id, v.name,  
     h.rental_date, 
     h.return_date, 
     h.return_status,

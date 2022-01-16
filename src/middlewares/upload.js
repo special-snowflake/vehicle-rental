@@ -41,8 +41,8 @@ const multerHandler = (req, res, next) => {
     console.log('[inside] inside ulterHandler');
     if (err && err.code === 'LIMIT_FILE_SIZE') {
       return res
-        .status(500)
-        .json({errorMsg: `Image size mustn't be bigger than 2MB.`});
+        .status(400)
+        .json({errMsg: `Image size mustn't be bigger than 2MB.`});
     }
     next();
   });

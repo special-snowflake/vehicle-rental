@@ -18,13 +18,13 @@ const authorizeCustomer = (req, res, next) => {
     jwt.verify(token, process.env.SECRET_KEY, jwtOptions, (err, payload) => {
       if (err) {
         return resHelper.error(res, 403, {
-          msg: 'You need to login to perform this action.',
+          errMsg: 'You need to login to perform this action.',
         });
       }
       const {roles} = payload;
       if (roles.toLowerCase() !== 'customer') {
         return resHelper.error(res, 403, {
-          msg: 'You need to login as Customer to perform this action.',
+          errMsg: 'You need to login as Customer to perform this action.',
         });
       }
       req.payload = payload;
@@ -79,11 +79,14 @@ const authorizeOwner = (req, res, next) => {
     }
     jwt.verify(token, process.env.SECRET_KEY, jwtOptions, (err, payload) => {
       if (err) {
+        console.log('token', token);
+        console.log('error verify', err);
         return resHelper.error(res, 403, {
           errMsg: 'You need to login to perform this action.',
         });
       }
       const {roles} = payload;
+      console.log('roles', roles);
       if (roles.toLowerCase() !== 'owner') {
         return resHelper.error(res, 403, {
           errMsg: 'You need to login as Owner to perform this action.',

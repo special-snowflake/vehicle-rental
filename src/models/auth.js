@@ -72,7 +72,7 @@ const login = (body) => {
         return resolve({
           status: 401,
           result: {
-            errMsg: 'Login Failed. Check your email/username and password.',
+            errMsg: 'Login Failed. Check your email/password.',
           },
         });
       }
@@ -89,7 +89,7 @@ const login = (body) => {
           email: data.email,
           username: data.username,
           name: data.full_name,
-          image: data.photo,
+          photo: data.photo,
           roles: data.roles,
         };
 
@@ -100,9 +100,18 @@ const login = (body) => {
         };
         jwt.sign(payload, process.env.SECRET_KEY, jwtOptions, (err, token) => {
           if (err) reject(err);
+          console.log('login success');
+          const data = {
+            token,
+            id: payload.id,
+            roles: payload.roles,
+            photo: payload.photo,
+          };
+          // console.table(data);
+          console.log();
           resolve({
             status: 200,
-            result: {msg: 'Login Success.', data: {token}},
+            result: {msg: 'Login Success.', data},
           });
         });
       });
