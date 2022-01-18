@@ -14,8 +14,8 @@ const getVehicles = (category) => {
       sqlQuery = `
       SELECT h.vehicle_id id, ct.city, c.category,
       v.name, v.price, 
-      (SELECT image FROM vehicle_images WHERE vehicle_id = h.vehicle_id) 
-      as image
+      (SELECT image FROM vehicle_images WHERE vehicle_id = h.vehicle_id 
+        LIMIT 1) as image
       FROM history h 
       LEFT JOIN testimony t ON h.id = t.history_id 
       JOIN vehicles v ON v.id = h.vehicle_id
@@ -139,13 +139,13 @@ const searchVehicles = (query) => {
     cityId = cityId == '' || !cityId ? '%%' : `%${cityId}%`;
 
     nextPage +=
-      categoryId == '' || !categoryId ?
-        `categoryId=&` :
-        `categoryId=${categoryId}&`;
+      categoryId == '' || !categoryId
+        ? `categoryId=&`
+        : `categoryId=${categoryId}&`;
     previousPage +=
-      categoryId == '' || !categoryId ?
-        `categoryId=&` :
-        `categoryId=${categoryId}&`;
+      categoryId == '' || !categoryId
+        ? `categoryId=&`
+        : `categoryId=${categoryId}&`;
     categoryId = categoryId == '' || !categoryId ? '%%' : `%${categoryId}%`;
 
     nextPage += keyword == '' || !keyword ? `keyword=&` : `keyword=${keyword}&`;

@@ -21,6 +21,7 @@ const authorizeCustomer = (req, res, next) => {
           errMsg: 'You need to login to perform this action.',
         });
       }
+      // console.log(payload);
       const {roles} = payload;
       if (roles.toLowerCase() !== 'customer') {
         return resHelper.error(res, 403, {
@@ -86,7 +87,7 @@ const authorizeOwner = (req, res, next) => {
         });
       }
       const {roles} = payload;
-      console.log('roles', roles);
+      // console.log('roles', roles);
       if (roles.toLowerCase() !== 'owner') {
         return resHelper.error(res, 403, {
           errMsg: 'You need to login as Owner to perform this action.',

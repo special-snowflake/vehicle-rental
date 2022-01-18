@@ -1,5 +1,6 @@
 const express = require('express');
 
+const authorize = require('../middlewares/authorize');
 const historyRouter = express.Router();
 
 const controllerHistory = require('../controllers/history');
@@ -7,23 +8,27 @@ const middleHistory = require('../middlewares/history');
 
 historyRouter.post(
   '/',
-  middleHistory.checkInputHistory,
-  middleHistory.getUserId,
-  controllerHistory.addHistory
+  authorize.authorizeCustomer,
+  controllerHistory.addHistory,
 );
 
 historyRouter.get('/', controllerHistory.getHistory);
 
+historyRouter.get(
+  '/search',
+  authorize.authorizeAllUser,
+  controllerHistory.searchHistory,
+);
 historyRouter.patch(
   '/',
   middleHistory.getDataForUpdate,
-  controllerHistory.updateHistory
+  controllerHistory.updateHistory,
 );
 
 historyRouter.delete(
   '/',
   middleHistory.getDataForDelete,
-  controllerHistory.deleteHistory
+  controllerHistory.deleteHistory,
 );
 
 module.exports = historyRouter;

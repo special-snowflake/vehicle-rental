@@ -1,50 +1,21 @@
+/* eslint-disable camelcase */
 const mysql = require('mysql');
 const db = require('../config/db');
 
 const modelHistory = require('../models/history');
 const resHelper = require('../helpers/sendResponse');
 
-const {grabLocalYMD, calculateDays} = require('../helpers/collection');
+const {grabLocalYMD} = require('../helpers/collection');
 
 const addHistory = (req, res) => {
-  const {
-    body: {
-      vehicleId,
-      unit,
-      price,
-      userId,
-      rental_date,
-      return_date,
-      return_status,
-    },
-  } = req;
-  if (rental_date > return_date)
-    return resHelper.error(res, 422, {
-      errMSg: `Return date must be bigger or the same as rental date.`,
-    });
-  const rentalDays = calculateDays(rental_date, return_date);
-  const totalPayment = unit * rentalDays * price;
-  const prepare = [
-    vehicleId,
-    userId,
-    rental_date,
-    return_date,
-    return_status,
-    unit,
-    totalPayment,
-  ];
+  const {body} = req;
+  console.log(body);
   modelHistory
-    .modelAddHistory(prepare)
+    .modelAddHistory(body)
     .then(({status, result}) => {
       const data = {
+        ...body,
         id: result.insertId,
-        vehicleId,
-        userId,
-        rental_date,
-        return_date,
-        return_status,
-        unit,
-        totalPayment,
       };
       resHelper.success(res, status, {
         msg: 'New History Added',
@@ -53,6 +24,20 @@ const addHistory = (req, res) => {
     })
     .catch((err) => {
       resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
+    });
+};
+
+const searchHistory = (req, res) => {
+  // const {payload} = req;
+  // console.log('search history:', payload);
+  // const userId = payload.id;
+  modelHistory
+    .searchHistory(req)
+    .then(({status, result}) => {
+      return resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      return resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
     });
 };
 
@@ -177,4 +162,10 @@ const deleteHistory = (req, res) => {
   });
 };
 
-module.exports = {addHistory, getHistory, updateHistory, deleteHistory};
+module.exports = {
+  addHistory,
+  getHistory,
+  updateHistory,
+  deleteHistory,
+  searchHistory,
+};
