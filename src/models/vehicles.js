@@ -80,7 +80,7 @@ const getDetailByID = (id) => {
       });
       console.log(images);
       const sqlQuery = `SELECT v.id, ct.category, c.city,
-      v.name, v.category_id, v.city_id,
+      v.name, v.category_id, v.city_id, v.user_id,
       v.description, v.price, v.status,  v.stock
       FROM vehicles v JOIN city c ON c.id = v.city_id 
       JOIN category ct ON ct.id = v.category_id 
