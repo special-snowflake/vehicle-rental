@@ -2,6 +2,7 @@
 const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
+const {getTimeStamp} = require('../helpers/collection.js');
 // const checkVehicleUpdate = require('../helpers/checkVehicleUpdate');
 const fs = require('fs');
 
@@ -139,13 +140,13 @@ const searchVehicles = (query) => {
     cityId = cityId == '' || !cityId ? '%%' : `%${cityId}%`;
 
     nextPage +=
-      categoryId == '' || !categoryId
-        ? `categoryId=&`
-        : `categoryId=${categoryId}&`;
+      categoryId == '' || !categoryId ?
+        `categoryId=&` :
+        `categoryId=${categoryId}&`;
     previousPage +=
-      categoryId == '' || !categoryId
-        ? `categoryId=&`
-        : `categoryId=${categoryId}&`;
+      categoryId == '' || !categoryId ?
+        `categoryId=&` :
+        `categoryId=${categoryId}&`;
     categoryId = categoryId == '' || !categoryId ? '%%' : `%${categoryId}%`;
 
     nextPage += keyword == '' || !keyword ? `keyword=&` : `keyword=${keyword}&`;
@@ -325,21 +326,16 @@ const addNewVehicle = (req) => {
     const user_id = payload.id;
     console.log('payload', payload);
     console.log('body before', body);
-    body = {...body, ...{user_id}};
+    // const currentDate = new Date();
+    // const timestamp = currentDate.getTime();
+    const timeStamp = getTimeStamp();
+    console.log('timestamp :', timeStamp);
+    body = {
+      ...body,
+      ...{user_id},
+      ...{created_at: timeStamp},
+    };
     console.log('body after', body);
-    // const {
-    //   body: {brand, model, capacity, price, status, stock, category, city},
-    // } = req;
-    // const prepare = [
-    //   category,
-    //   city,
-    //   brand,
-    //   model,
-    //   capacity,
-    //   price,
-    //   status,
-    //   stock,
-    // ];
     const images = req.images;
     if (images.length === 0) {
       return resolve({status: 400, result: {errMsg: 'Please add an Image.'}});
@@ -347,6 +343,7 @@ const addNewVehicle = (req) => {
     const sqlQuery = `INSERT INTO vehicles SET ?`;
     db.query(sqlQuery, body, (err, result) => {
       if (err) {
+        console.log(err);
         deleteImages(images, reject);
         return reject(err);
       }

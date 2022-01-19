@@ -28,9 +28,6 @@ const addHistory = (req, res) => {
 };
 
 const searchHistory = (req, res) => {
-  // const {payload} = req;
-  // console.log('search history:', payload);
-  // const userId = payload.id;
   modelHistory
     .searchHistory(req)
     .then(({status, result}) => {

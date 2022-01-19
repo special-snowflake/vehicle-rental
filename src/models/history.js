@@ -2,7 +2,7 @@ const mysql = require('mysql');
 const db = require('../config/db');
 const modelHelp = require('../helpers/modelsHelper');
 
-const {grabLocalYMD} = require('../helpers/collection');
+const {grabLocalYMD, getTimeStamp} = require('../helpers/collection');
 
 const modelCheckInputHistory = (id, unit) => {
   return new Promise((resolve, reject) => {
@@ -133,6 +133,8 @@ const searchHistory = (req) => {
 const modelAddHistory = (body) => {
   return new Promise((resolve, reject) => {
     console.log('inside add history model :', body);
+    const timeStamp = getTimeStamp();
+    body = {...body, ...{created_at: timeStamp}};
     const sqlQuery = `INSERT INTO history SET ?`;
     db.query(sqlQuery, [body], (err, result) => {
       if (err) {
@@ -177,16 +179,8 @@ const modelUpdateHistory = (prepare) => {
     db.query(updateQuery, prepare, (err, result) => {
       if (err) {
         return reject(err);
-        res.status(500).json({
-          msg: 'Something went wrong',
-          err,
-        });
       }
       return resolve({status: 200, result});
-      res.status(200).json({
-        msg: 'Data successfully updated.',
-        data: bodyUpdate,
-      });
     });
   });
 };
