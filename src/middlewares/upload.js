@@ -46,6 +46,7 @@ const multerHandler = (req, res, next) => {
     }
     if (err) {
       console.log('log error multer single: ', err);
+      return res.status(500).json({errMsg: err.message});
     }
     console.log('log file:', req.file);
     next();
