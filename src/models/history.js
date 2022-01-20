@@ -74,6 +74,7 @@ const modelGetDataForDelete = (id) => {
 const searchHistory = (req) => {
   return new Promise((resolve, reject) => {
     const {payload, query} = req;
+    console.log('this is payload: ', payload);
     const keyword =
       query.keyword == '' || !query.keyword ? '%%' : `%${query.keyword}%`;
     const id = payload.id;
