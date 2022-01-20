@@ -44,6 +44,9 @@ const multerHandler = (req, res, next) => {
         .status(400)
         .json({errMsg: `Image size mustn't be bigger than 2MB.`});
     }
+    if (err) {
+      console.log('log error multer single: ', err);
+    }
     console.log('log file:', req.file);
     next();
   });
