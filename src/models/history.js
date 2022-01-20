@@ -74,14 +74,13 @@ const modelGetDataForDelete = (id) => {
 const searchHistory = (req) => {
   return new Promise((resolve, reject) => {
     const {payload, query} = req;
-    // console.log(query, payload);
     const keyword =
       query.keyword == '' || !query.keyword ? '%%' : `%${query.keyword}%`;
     const id = payload.id;
     const queryOrder = query.orderBy;
     let orderBy = '';
     if (queryOrder === 'type') orderBy = 'ct.category';
-    if (queryOrder === 'date') orderBy = 'h.rental_date';
+    if (queryOrder === 'date') orderBy = 'h.created_at';
     if (queryOrder === 'name') orderBy = 'v.name';
     const roles = payload.roles;
     let sqlSearch = '';

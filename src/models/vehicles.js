@@ -100,33 +100,40 @@ const getDetailByID = (id) => {
 
 const searchVehicles = (query) => {
   return new Promise((resolve, reject) => {
-    let {
-      keyword,
-      cityId,
-      categoryId,
-      name,
-      // minCapacity,
-      orderBy,
-      sort,
-      limit,
-      page,
-    } = query;
+    let {keyword, city, category, name, orderBy, sort, limit, page} = query;
     console.log(query);
-    let nextPage = '/search?';
-    let previousPage = '/search?';
+    let nextPage = '?';
+    let previousPage = '?';
     let offset = '';
+    const orderByPage = orderBy;
+    const sortPage = sort;
+
+    nextPage += keyword == '' || !keyword ? `keyword=` : `keyword=${keyword}`;
+    previousPage +=
+      keyword == '' || !keyword ? `keyword=` : `keyword=${keyword}`;
+    keyword = keyword == '' || !keyword ? '%%' : `%${keyword}%`;
+
     if (orderBy !== '' && typeof orderBy !== 'undefined') {
       if (typeof sort !== 'undefined') {
         sort = sort.toLocaleLowerCase() === 'desc' ? ' DESC' : ' ASC';
       } else {
         sort = ' ASC';
       }
+      if (orderBy === 'price') {
+        orderBy = 'v.price';
+      }
+      if (orderBy === 'city') {
+        orderBy === 'c.city';
+      }
+      if (orderBy === 'name') {
+        orderBy === 'v.name';
+      }
     } else {
-      orderBy = 'v.id';
+      orderBy = 'v.created_at';
       sort = ' ASC';
     }
     if (!limit) {
-      limit = '10';
+      limit = '12';
     }
     if (!page) {
       page = '1';
@@ -135,27 +142,17 @@ const searchVehicles = (query) => {
       offset = (+page - 1) * +limit;
     }
     console.log('[db check after me]');
-    nextPage += cityId == '' || !cityId ? `cityId=&` : `cityId=${cityId}&`;
-    previousPage += cityId == '' || !cityId ? `cityId=&` : `cityId=${cityId}&`;
-    cityId = cityId == '' || !cityId ? '%%' : `%${cityId}%`;
+    nextPage += city == '' || !city ? `` : `cityId=${city}&`;
+    previousPage += city == '' || !city ? `` : `cityId=${city}&`;
+    city = city == '' || !city ? '%%' : `%${city}%`;
 
-    nextPage +=
-      categoryId == '' || !categoryId ?
-        `categoryId=&` :
-        `categoryId=${categoryId}&`;
+    nextPage += category == '' || !category ? `` : `categoryId=${category}&`;
     previousPage +=
-      categoryId == '' || !categoryId ?
-        `categoryId=&` :
-        `categoryId=${categoryId}&`;
-    categoryId = categoryId == '' || !categoryId ? '%%' : `%${categoryId}%`;
+      category == '' || !category ? `` : `categoryId=${category}&`;
+    category = category == '' || !category ? '%%' : `%${category}%`;
 
-    nextPage += keyword == '' || !keyword ? `keyword=&` : `keyword=${keyword}&`;
-    previousPage +=
-      keyword == '' || !keyword ? `keyword=&` : `keyword=${keyword}&`;
-    keyword = keyword == '' || !keyword ? '%%' : `%${keyword}%`;
-
-    nextPage += name == '' || !name ? `name=&` : `name=${name}&`;
-    previousPage += name == '' || !name ? `name=&` : `name=${name}&`;
+    nextPage += name == '' || !name ? `` : `name=${name}&`;
+    previousPage += name == '' || !name ? `` : `name=${name}&`;
     name = name == '' || !name ? '%%' : `%${name}%`;
 
     // nextPage += model == '' || !model ? `model=&` : `model=${model}&`;
@@ -173,8 +170,8 @@ const searchVehicles = (query) => {
     // minCapacity = minCapacity == '' || !minCapacity ? '1' : minCapacity;
 
     const prepare = [
-      cityId,
-      categoryId,
+      city,
+      category,
       name,
       // brand,
       // model,
@@ -195,7 +192,7 @@ const searchVehicles = (query) => {
       if (err) return reject(err);
       console.log(err);
       const count = result[0].count;
-      const sortSpliced = sort.slice(1, sort.length);
+      // const sortSpliced = sort.slice(1, sort.length);
       const nextOffset = +offset + +limit;
       const nPage = nextOffset > count ? null : +page + 1;
       const pPage = page > 1 ? +page - 1 : null;
@@ -204,28 +201,42 @@ const searchVehicles = (query) => {
       if (nPage == null) {
         nextPage = null;
       } else {
-        nextPage +=
-          '&orderBy=' +
-          orderBy +
-          '&sort=' +
-          sortSpliced +
-          '&limit=' +
-          limit +
-          '&page=' +
-          nPage;
+        // nextPage +=
+        //   '&orderBy=' +
+        //   orderByPage +
+        //   '&sort=' +
+        //   sortPage +
+        //   // '&limit=' +
+        //   // limit +
+        //   '&page=' +
+        //   nPage;
+        if (typeof orderByPage !== 'undefined') {
+          nextPage += '&orderBy=' + orderByPage;
+        }
+        if (typeof sortPage !== 'undefined') {
+          nextPage += '&sort=' + sortPage;
+        }
+        nextPage += '&page=' + nPage;
       }
       if (pPage == null) {
         previousPage = null;
       } else {
-        previousPage +=
-          '&orderBy=' +
-          orderBy +
-          '&sort=' +
-          sortSpliced +
-          '&limit=' +
-          limit +
-          '&page=' +
-          pPage;
+        // previousPage +=
+        //   '&orderBy=' +
+        //   orderByPage +
+        //   '&sort=' +
+        //   sortPage +
+        //   // '&limit=' +
+        //   // limit +
+        //   '&page=' +
+        //   pPage;
+        if (typeof orderByPage !== 'undefined') {
+          previousPage += '&orderBy=' + orderByPage;
+        }
+        if (typeof sortPage !== 'undefined') {
+          previousPage += '&sort=' + sortPage;
+        }
+        previousPage += '&page=' + pPage;
       }
       const meta = {
         totalData: count,

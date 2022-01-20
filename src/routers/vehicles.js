@@ -2,7 +2,7 @@ const express = require('express');
 
 const vehiclesRouter = express.Router();
 const controllerVehicles = require('../controllers/vehicles');
-const middleVehicles = require('../middlewares/vehicles');
+// const middleVehicles = require('../middlewares/vehicles');
 const auth = require('../middlewares/authorize');
 const uploadMulti = require('../middlewares/uploadMulti');
 

@@ -33,6 +33,7 @@ const getDetailByID = (req, res) => {
 
 const searchVehicles = (req, res) => {
   const {query} = req;
+  console.log('query:', query);
   vehiclesModel
     .searchVehicles(query)
     .then(({status, result}) => {
