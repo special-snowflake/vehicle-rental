@@ -39,6 +39,7 @@ const multerHandler = (req, res, next) => {
   upload(req, res, (err) => {
     console.log(req.payload);
     console.log('[inside] inside ulterHandler');
+    console.log('current dirname', __dirname);
     if (err && err.code === 'LIMIT_FILE_SIZE') {
       return res
         .status(400)
