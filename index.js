@@ -15,7 +15,7 @@ const logger = morgan(
 app.use('/vehicles', express.static(path.join(__dirname, 'media')));
 app.use('/user', express.static(path.join(__dirname, 'media')));
 
-const port = 8000;
+const port = process.env.PORT || 8000;
 app.listen(port, () => {
   console.log(`Server is running in port : ${port}`);
 });
