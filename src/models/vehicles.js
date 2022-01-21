@@ -445,7 +445,7 @@ const checkInputCity = (city) => {
 
 const deleteImages = (images, reject) => {
   images.forEach((element) => {
-    fs.unlink(`../vehicle-rental/media/${element}`, (err) => {
+    fs.unlink(`media/${element}`, (err) => {
       if (err) {
         return reject(err);
       }

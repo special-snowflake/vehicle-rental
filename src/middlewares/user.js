@@ -70,7 +70,7 @@ const getDataUserForUpdate = (req, res, next) => {
       const oldPhoto = bodyUpdate[0].photo;
       console.log('old photo', oldPhoto);
       if (oldPhoto) {
-        fs.unlink(`../vehicle-rental/media/${oldPhoto}`, (err) => {
+        fs.unlink(`media/${oldPhoto}`, (err) => {
           if (err) {
             return res
               .status(500)

@@ -4,7 +4,7 @@ const path = require('path');
 const maxfilesize = 2 * 1024 * 1024;
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, process.env.UPLOAD_USER);
+    cb(null, 'media/images/');
   },
   filename: (req, file, cb) => {
     const {payload} = req;
