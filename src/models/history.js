@@ -60,33 +60,35 @@ const deleteHistory = (req) => {
   return new Promise((resolve, reject) => {
     const {payload, body} = req;
     const historyIds = body.historyIds;
+    console.log(historyIds[0]);
     const roles = payload.roles;
     const userID = payload.id;
     const timeStamp = getTimeStamp();
     const prepare = [];
-    const sqlDeleteHistory = `UPDATE history SET ? = ? 
-    WHERE user_id = ? AND id IN ?`;
+    const sqlDeleteHistory = `UPDATE history, vehicles SET ? = ? 
+    WHERE ? = ? AND history.id IN (?)`;
+    let rolesId = 'vehicles.user_id';
+    console.log('user roles delete:', roles);
     if (roles === 'owner') {
       prepare.push(mysql.raw('deleted_owner_at'));
     } else if (roles === 'customer') {
+      rolesId = 'history.id';
       prepare.push(mysql.raw('deleted_customer_at'));
     } else {
       return resolve({status: 403, errMsg: 'Unauthorize access.'});
     }
     prepare.push(timeStamp);
+    prepare.push(mysql.raw(rolesId));
     prepare.push(userID);
     let whereIn = '';
     for (let i = 0; i < historyIds.length; i++) {
       whereIn +=
-        i === 0 ?
-          `( ${historyIds[i]},` :
-          i === historyIds.length - 1 ?
-          ` ${historyIds[i]} )` :
-          ` ${historyIds[i]},`;
+        i !== historyIds.length - 1 ? historyIds[i] + ',' : historyIds[i];
     }
     prepare.push(mysql.raw(whereIn));
     db.query(sqlDeleteHistory, prepare, (err, result) => {
       if (err) return reject(err);
+      console.log('result delete', result);
       resolve({status: 200, result: {msg: 'Delete success.'}});
     });
   });

@@ -108,20 +108,24 @@ const authorizeOwner = (req, res, next) => {
 const authorizeAllUser = (req, res, next) => {
   const token = req.header('x-authorized-token');
   console.log('token:', token);
+  console.log('req:', req.body);
   const jwtOptions = {
     issuer: process.env.ISSUER,
   };
   const sqlGetBlackList = `SELECT token FROM blacklist_token WHERE token = ?`;
+  console.log(token);
   db.query(sqlGetBlackList, [token], (err, result) => {
     if (err) {
       return resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
     }
     if (result.length !== 0) {
+      console.log('failed auth middleware');
       return resHelper.success(res, 403, {
         errMsg: 'You need to login to perform this action.',
       });
     }
     jwt.verify(token, process.env.SECRET_KEY, jwtOptions, (err, payload) => {
+      console.log('failed auth middleware 2', token);
       if (err) {
         return resHelper.error(res, 403, {
           errMsg: 'You need to login to perform this action.',
