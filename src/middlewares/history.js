@@ -1,5 +1,3 @@
-const db = require('../config/db');
-
 const modelHistory = require('../models/history');
 const resHelper = require('../helpers/sendResponse');
 
@@ -76,7 +74,7 @@ const getDataForUpdate = (req, res, next) => {
       bodyUpdate[0] = checkingPatchWithData(
         bodyUpdate,
         'vehicle_id',
-        vehicleId
+        vehicleId,
       );
       bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'user_id', userId);
       bodyUpdate[0] = checkingPatchDate(bodyUpdate, 'rental_date', rentalDate);
@@ -84,13 +82,13 @@ const getDataForUpdate = (req, res, next) => {
       bodyUpdate[0] = checkingPatchWithData(
         bodyUpdate,
         'return_status',
-        returnStatus
+        returnStatus,
       );
       bodyUpdate[0] = checkingPatchWithData(bodyUpdate, 'unit', unit);
       bodyUpdate[0] = checkingPatchWithData(
         bodyUpdate,
         'total_payment',
-        totalPayment
+        totalPayment,
       );
       req.bodyUpdate = bodyUpdate[0];
       next();

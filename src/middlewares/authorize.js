@@ -9,7 +9,9 @@ const authorizeCustomer = (req, res, next) => {
   };
   const sqlGetBlackList = `SELECT token FROM blacklist_token WHERE token = ?`;
   db.query(sqlGetBlackList, [token], (err, result) => {
-    if (err) return resHelper.error(res, 500, err);
+    if (err) {
+      return resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
+    }
     if (result.length !== 0) {
       return resHelper.success(res, 403, {
         msg: 'You need to login to perform this action.',
@@ -41,7 +43,9 @@ const authorizeAdmin = (req, res, next) => {
   };
   const sqlGetBlackList = `SELECT token FROM blacklist_token WHERE token = ?`;
   db.query(sqlGetBlackList, [token], (err, result) => {
-    if (err) return resHelper.error(res, 500, err);
+    if (err) {
+      return resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
+    }
     if (result.length !== 0) {
       return resHelper.error(res, 403, {
         errMsg: 'You need to login to perform this action.',
@@ -72,7 +76,9 @@ const authorizeOwner = (req, res, next) => {
   };
   const sqlGetBlackList = `SELECT token FROM blacklist_token WHERE token = ?`;
   db.query(sqlGetBlackList, [token], (err, result) => {
-    if (err) return resHelper.error(res, 500, err);
+    if (err) {
+      return resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
+    }
     if (result.length !== 0) {
       return resHelper.error(res, 403, {
         errMsg: 'You need to login to perform this action.',
@@ -107,7 +113,9 @@ const authorizeAllUser = (req, res, next) => {
   };
   const sqlGetBlackList = `SELECT token FROM blacklist_token WHERE token = ?`;
   db.query(sqlGetBlackList, [token], (err, result) => {
-    if (err) return resHelper.error(res, 500, err);
+    if (err) {
+      return resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
+    }
     if (result.length !== 0) {
       return resHelper.success(res, 403, {
         errMsg: 'You need to login to perform this action.',

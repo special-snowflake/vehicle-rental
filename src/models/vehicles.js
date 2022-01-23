@@ -130,7 +130,6 @@ const searchVehicles = (query) => {
       }
     } else {
       orderBy = 'v.created_at';
-      sort = ' ASC';
     }
     if (!limit) {
       limit = '12';

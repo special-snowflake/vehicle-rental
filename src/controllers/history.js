@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 const mysql = require('mysql');
-const db = require('../config/db');
 
 const modelHistory = require('../models/history');
 const resHelper = require('../helpers/sendResponse');
@@ -117,46 +116,14 @@ const updateHistory = (req, res) => {
 };
 
 const deleteHistory = (req, res) => {
-  const {
-    body: {
-      id,
-      vehicle_id,
-      user_id,
-      rental_date,
-      return_date,
-      return_status,
-      unit,
-      total_payment,
-    },
-  } = req;
-  const sqlQuery = 'DELETE FROM history WHERE id = ?';
-  db.query(sqlQuery, [id], (err) => {
-    if (err) {
-      if (err.code == 'ER_ROW_IS_REFERENCED_2') {
-        return resHelper.error(res, 409, {
-          errMsg: `Cannot delete data that's being used.`,
-        });
-      }
-      return resHelper.error(res, 500, {
-        errMsg: 'Something went wrong.',
-        err,
-      });
-    }
-    const data = {
-      id,
-      vehicle_id,
-      user_id,
-      rental_date: grabLocalYMD(rental_date),
-      return_date: grabLocalYMD(return_date),
-      return_status,
-      unit,
-      total_payment,
-    };
-    return res.status(200).json({
-      msg: 'History deleted.',
-      data,
+  modelHistory
+    .deleteHistory(req)
+    .then(({status, result}) => {
+      return resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      resHelper.error(res, 500, err);
     });
-  });
 };
 
 module.exports = {

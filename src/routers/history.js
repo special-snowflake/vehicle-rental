@@ -27,7 +27,7 @@ historyRouter.patch(
 
 historyRouter.delete(
   '/',
-  // middleHistory.deleteHistory,
+  authorize.authorizeAllUser,
   controllerHistory.deleteHistory,
 );
 
