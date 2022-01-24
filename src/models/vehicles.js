@@ -187,6 +187,7 @@ const searchVehicles = (query) => {
     JOIN category ct ON v.category_id = ct.id
     WHERE v.city_id LIKE ? and v.category_id LIKE ? 
     and v.name LIKE ? and concat(v.name, c.city, ct.category) LIKE ?`;
+    console.log('sort', sort);
     db.query(sqlCount, prepare, (err, result) => {
       if (err) return reject(err);
       console.log(err);

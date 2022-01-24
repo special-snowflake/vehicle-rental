@@ -72,7 +72,7 @@ const deleteHistory = (req) => {
     if (roles === 'owner') {
       prepare.push(mysql.raw('deleted_owner_at'));
     } else if (roles === 'customer') {
-      rolesId = 'history.id';
+      rolesId = 'history.user_id';
       prepare.push(mysql.raw('deleted_customer_at'));
     } else {
       return resolve({status: 403, errMsg: 'Unauthorize access.'});

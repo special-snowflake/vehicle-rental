@@ -4,7 +4,7 @@ const db = mysql.createConnection({
   user: process.env.USER,
   password: process.env.PASS,
   database: process.env.DB,
-  timezone: 'utc',
+  // timezone: 'utc',
 });
 
 module.exports = db;
