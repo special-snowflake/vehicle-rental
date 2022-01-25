@@ -173,7 +173,8 @@ const changeUserRoles = (userId, roles) => {
 
 const changePassword = (oldPassword, newPassword, id) => {
   return new Promise((resolve, reject) => {
-    const sqlGetOldPassword = 'SELECT password from user_access WHERE id = ?';
+    const sqlGetOldPassword =
+      'SELECT password from user_access WHERE user_id = ?';
     console.log('old, new, id:', oldPassword, newPassword, id);
     db.query(sqlGetOldPassword, [id], (err, result) => {
       console.log('result from password', result);
