@@ -175,7 +175,7 @@ const changePassword = (oldPassword, newPassword, id) => {
   return new Promise((resolve, reject) => {
     const sqlGetOldPassword = 'SELECT password from user_access WHERE id = ?';
     db.query(sqlGetOldPassword, [id], (err, result) => {
-      console.log(result.password);
+      console.log('password from db :', result[0].password);
       if (err) return reject(err);
       const passwordHased = result[0].password;
       bcrypt.compare(oldPassword, passwordHased, (err, result) => {
@@ -184,6 +184,7 @@ const changePassword = (oldPassword, newPassword, id) => {
           const error = new Error('Old password is incorrect.');
           return reject(error.message);
         }
+        console.log('password match');
         bcrypt
           .hash(newPassword, 10)
           .then((hashedPassword) => {
