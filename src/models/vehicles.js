@@ -16,7 +16,7 @@ const getVehicles = (category) => {
       SELECT h.vehicle_id id, ct.city, c.category,
       v.name, v.price, 
       (SELECT image FROM vehicle_images WHERE vehicle_id = h.vehicle_id 
-        LIMIT 1) as image
+        ORDER BY id DESC  LIMIT 1) as image
       FROM history h 
       LEFT JOIN testimony t ON h.id = t.history_id 
       JOIN vehicles v ON v.id = h.vehicle_id
@@ -35,7 +35,7 @@ const getVehicles = (category) => {
       sqlQuery = `SELECT h.vehicle_id id, ct.city, c.category,
       v.name, v.price, 
       (SELECT image FROM vehicle_images 
-        WHERE vehicle_id = h.vehicle_id LIMIT 1) as image
+        WHERE vehicle_id = h.vehicle_id ORDER BY id DESC LIMIT 1) as image
       from history h 
       LEFT join testimony t ON h.id = t.history_id 
       JOIN vehicles v ON v.id = h.vehicle_id
@@ -251,7 +251,8 @@ const searchVehicles = (query) => {
       };
       const sqlSearch = `SELECT v.id, v.name, 
           v.stock, c.city, ct.category, v.price,
-          (SELECT image FROM vehicle_images WHERE vehicle_id = v.id LIMIT 1) 
+          (SELECT image FROM vehicle_images 
+            WHERE vehicle_id = v.id ORDER BY id DESC LIMIT 1) 
           as image
           FROM vehicles v 
           JOIN city c ON v.city_id = c.id

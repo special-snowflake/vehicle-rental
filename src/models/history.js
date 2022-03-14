@@ -10,7 +10,8 @@ const getHistoryById = (id) => {
     h.rental_date, h.return_date, h.return_status, h.unit, h.id_card,
     h.total_payment, h.booking_code, h.payment_code, h.payment_method,
     v.name vehicle_name, c.city,
-    (SELECT image FROM vehicle_images WHERE vehicle_id = h.vehicle_id LIMIT 1) 
+    (SELECT image FROM vehicle_images 
+      WHERE vehicle_id = h.vehicle_id ORDER BY id DESC LIMIT 1) 
     as image FROM history h JOIN vehicles v ON v.id = h.vehicle_id 
     JOIN city c ON c.id = v.city_id
     WHERE h.id = ?`;
@@ -207,7 +208,7 @@ const searchHistory = (req) => {
       h.rental_date, h.return_date, h.return_status, h.total_payment, 
       h.full_name, h.phone, h.email, h.booking_code, h.payment_code, h.id_card,
       h.payment_method, (SELECT image FROM vehicle_images 
-      WHERE vehicle_id = v.id LIMIT 1) as image
+      WHERE vehicle_id = v.id ORDER BY id DESC LIMIT 1) as image
       FROM history h JOIN vehicles v ON v.id = h.vehicle_id 
       JOIN city c ON c.id = v.city_id
       JOIN category ct ON ct.id = v.category_id
