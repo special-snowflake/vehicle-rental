@@ -102,19 +102,20 @@ const searchVehicles = (query) => {
   return new Promise((resolve, reject) => {
     let {keyword, city, category, name, orderBy, sort, limit, page} = query;
     console.log(query);
+    const priceMin = parseInt(query.priceMin) || 0;
+    const priceMax = parseInt(query.priceMax) || 15 * 1000 * 1000;
     let nextPage = '?';
     let previousPage = '?';
     let offset = '';
     const orderByPage = orderBy;
     const sortPage = sort;
-
     nextPage += keyword == '' || !keyword ? `keyword=` : `keyword=${keyword}`;
     previousPage +=
       keyword == '' || !keyword ? `keyword=` : `keyword=${keyword}`;
     keyword = keyword == '' || !keyword ? '%%' : `%${keyword}%`;
-
+    nextPage += `&priceMin=${priceMin}&priceMax=${priceMax}`;
     if (orderBy !== '' && typeof orderBy !== 'undefined') {
-      if (typeof sort !== 'undefined') {
+      if (sort) {
         sort = sort.toLocaleLowerCase() === 'desc' ? ' DESC' : ' ASC';
       } else {
         sort = ' ASC';
@@ -171,6 +172,8 @@ const searchVehicles = (query) => {
     const prepare = [
       city,
       category,
+      priceMin,
+      priceMax,
       name,
       // brand,
       // model,
@@ -186,6 +189,7 @@ const searchVehicles = (query) => {
     JOIN city c ON v.city_id = c.id
     JOIN category ct ON v.category_id = ct.id
     WHERE v.city_id LIKE ? and v.category_id LIKE ? 
+    and v.price BETWEEN ? AND ?
     and v.name LIKE ? and concat(v.name, c.city, ct.category) LIKE ?`;
     console.log('sort', sort);
     db.query(sqlCount, prepare, (err, result) => {
@@ -253,6 +257,7 @@ const searchVehicles = (query) => {
           JOIN city c ON v.city_id = c.id
           JOIN category ct ON v.category_id = ct.id 
           WHERE v.city_id LIKE ? and v.category_id LIKE ? 
+          and v.price BETWEEN ? AND ?
           and v.name LIKE ? and concat(v.name, c.city, ct.category) LIKE ?
           ORDER BY ? ?
           LIMIT ?, ?;`;

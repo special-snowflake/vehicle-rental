@@ -37,6 +37,23 @@ const searchHistory = (req, res) => {
     });
 };
 
+const getHistoryById = (req, res) => {
+  const {
+    params: {id},
+  } = req;
+  modelHistory
+    .getHistoryById(id)
+    .then(({status, result}) => {
+      return resHelper.success(res, status, {
+        msg: 'Detail History',
+        data: result,
+      });
+    })
+    .catch((err) => {
+      return resHelper.error(res, 500, {errMsg: 'Something went wrong.', err});
+    });
+};
+
 const getHistory = (req, res) => {
   const {
     query: {order, sort, userId},
@@ -132,4 +149,5 @@ module.exports = {
   updateHistory,
   deleteHistory,
   searchHistory,
+  getHistoryById,
 };

@@ -4,6 +4,30 @@ const modelHelp = require('../helpers/modelsHelper');
 
 const {grabLocalYMD, getTimeStamp} = require('../helpers/collection');
 
+const getHistoryById = (id) => {
+  return new Promise((resolve, reject) => {
+    const sqlQuery = `SELECT h.id, h.vehicle_id, h.full_name, h.phone, h.email, 
+    h.rental_date, h.return_date, h.return_status, h.unit, h.id_card,
+    h.total_payment, h.booking_code, h.payment_code, h.payment_method,
+    v.name vehicle_name, c.city,
+    (SELECT image FROM vehicle_images WHERE vehicle_id = h.vehicle_id LIMIT 1) 
+    as image FROM history h JOIN vehicles v ON v.id = h.vehicle_id 
+    JOIN city c ON c.id = v.city_id
+    WHERE h.id = ?`;
+    db.query(sqlQuery, [id], (err, result) => {
+      if (err) {
+        console.log(err);
+        return reject(err);
+      }
+      if (result.length === 0) {
+        console.log('result', result);
+        return resolve({status: 404, result: 'History cannot be found.'});
+      }
+      return resolve({status: 200, result});
+    });
+  });
+};
+
 const modelCheckInputHistory = (id, unit) => {
   return new Promise((resolve, reject) => {
     const sqlQuery = `SELECT id, stock, price, status 
@@ -128,6 +152,7 @@ const searchHistory = (req) => {
       statusDelete = 'h.deleted_owner_at';
       sqlRoles = 'v.user_id ';
     } else {
+      console.log(roles);
       return resolve({status: 403, result: {errMsg: 'Unauthorized action.'}});
     }
     const prepare = [
@@ -146,12 +171,13 @@ const searchHistory = (req) => {
     ? = ? AND concat(v.name, c.city, ct.category) LIKE ?`;
     db.query(sqlCount, prepare, (err, result) => {
       if (err) {
+        console.log(err);
         return reject(err);
       }
       const totalData = result[0].totalData;
       console.log('sqlcount:', totalData);
       let page = '';
-      const limit = 3;
+      const limit = parseInt(query.limit) || 3;
       let offset = null;
       if (query.page) {
         page = parseInt(query.page);
@@ -177,18 +203,22 @@ const searchHistory = (req) => {
         nextPage,
         totalPage,
       };
-      const sqlSearch = `SELECT h.id as history_id, v.name, h.rental_date, 
-      h.return_date, h.return_status, h.total_payment,
-      (SELECT image FROM vehicle_images 
-        WHERE vehicle_id = v.id LIMIT 1) as image
-        FROM history h JOIN vehicles v ON v.id = h.vehicle_id 
-        JOIN city c ON c.id = v.city_id
-        JOIN category ct ON ct.id = v.category_id
-        WHERE ? IS NULL AND
-        ? = ? AND concat(v.name, c.city, ct.category) 
-        LIKE ? ORDER BY ? ? LIMIT ? OFFSET ?`;
+      const sqlSearch = `SELECT h.id as history_id, v.name vehicle_name,
+      h.rental_date, h.return_date, h.return_status, h.total_payment, 
+      h.full_name, h.phone, h.email, h.booking_code, h.payment_code, h.id_card,
+      h.payment_method, (SELECT image FROM vehicle_images 
+      WHERE vehicle_id = v.id LIMIT 1) as image
+      FROM history h JOIN vehicles v ON v.id = h.vehicle_id 
+      JOIN city c ON c.id = v.city_id
+      JOIN category ct ON ct.id = v.category_id
+      WHERE ? IS NULL AND
+      ? = ? AND concat(v.name, c.city, ct.category) 
+      LIKE ? ORDER BY ? ? LIMIT ? OFFSET ?`;
       db.query(sqlSearch, prepare, (err, result) => {
-        if (err) return reject(err);
+        if (err) {
+          console.log(err);
+          return reject(err);
+        }
         const history = [];
         result.forEach((_element, index) => {
           history[index] = result[index];
@@ -273,4 +303,5 @@ module.exports = {
   modelGetHistory,
   modelUpdateHistory,
   searchHistory,
+  getHistoryById,
 };

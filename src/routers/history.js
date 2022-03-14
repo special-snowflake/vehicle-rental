@@ -12,13 +12,15 @@ historyRouter.post(
   controllerHistory.addHistory,
 );
 
-historyRouter.get('/', controllerHistory.getHistory);
-
+// historyRouter.get('/', controllerHistory.getHistory);
 historyRouter.get(
   '/search',
   authorize.authorizeAllUser,
   controllerHistory.searchHistory,
 );
+
+historyRouter.get('/:id', controllerHistory.getHistoryById);
+
 historyRouter.patch(
   '/',
   middleHistory.getDataForUpdate,

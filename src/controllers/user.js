@@ -80,6 +80,7 @@ const changePassword = (req, res) => {
   const {
     body: {newPassword, oldPassword},
   } = req;
+  console.log('body pass', req.body);
   if (newPassword === oldPassword) {
     return resHelper.error(res, 401, {
       errMsg: `New password cannot be the same as old password`,
