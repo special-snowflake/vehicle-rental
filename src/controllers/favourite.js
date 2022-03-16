@@ -1,33 +1,31 @@
 const sendResponse = require('../helpers/sendResponse');
 const favModel = require('../models/favourite');
 
-const addFovourite = (req, res) => {
+const addFavourite = (req, res) => {
   const {
-    payload: {user_id},
+    payload: {id},
     body: {vehicle_id},
   } = req;
   favModel
-    .addFovourite(user_id, vehicle_id)
+    .addFavourite(id, vehicle_id)
     .then(({status, result}) => {
-      sendResponse.success(res, status, {
-        msg: 'Item Added to Favourite',
-        data: {
-          id: result.insertId,
-          category,
-        },
-      });
+      return sendResponse.success(res, status, result);
     })
     .catch((err) => {
-      sendResponse.error(res, 500, {errMsg: 'Adding favourite failed.', err});
+      return sendResponse.error(res, 500, {
+        errMsg: 'Something went wrong',
+        err,
+      });
     });
 };
 
 const getFavourite = (req, res) => {
   const {
-    payload: {user_id},
+    payload: {id},
   } = req;
+  // console.log(req);
   favModel
-    .getFavourite(user_id)
+    .getFavourite(id)
     .then(({status, data}) => {
       if (status == 204) {
         sendResponse.success(res, status, {
@@ -66,7 +64,7 @@ const deleteFavourite = (req, res) => {
 };
 
 module.exports = {
-  addFovourite,
+  addFavourite,
   getFavourite,
   deleteFavourite,
 };

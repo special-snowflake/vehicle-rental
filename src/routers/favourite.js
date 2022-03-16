@@ -6,7 +6,7 @@ const auth = require('../middlewares/authorize');
 const middleFav = require('../controllers/favourite');
 
 favRouter.get('/', auth.authorizeCustomer, middleFav.getFavourite);
-favRouter.post('/', auth.authorizeCustomer, middleFav.addFovourite);
+favRouter.post('/', auth.authorizeCustomer, middleFav.addFavourite);
 favRouter.delete('/:id', auth.authorizeCustomer, middleFav.deleteFavourite);
 
 module.exports = favRouter;
