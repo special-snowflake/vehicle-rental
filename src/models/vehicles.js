@@ -72,7 +72,8 @@ const getDataForUpdate = (id) => {
 
 const getDetailByID = (id) => {
   return new Promise((resolve, reject) => {
-    const sqlGetImages = `SELECT image FROM vehicle_images WHERE vehicle_id=?`;
+    const sqlGetImages = `SELECT image FROM vehicle_images 
+    WHERE vehicle_id=? ORDER BY id DESC`;
     db.query(sqlGetImages, [id], (err, result) => {
       if (err) return reject(err);
       const images = [];

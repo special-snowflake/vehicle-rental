@@ -8,7 +8,7 @@ const categoryRouter = express.Router();
 categoryRouter.post(
   '/',
   categoryAddVerification,
-  categoryController.addCategory
+  categoryController.addCategory,
 );
 
 categoryRouter.get('/', categoryController.getCategory);

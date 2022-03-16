@@ -9,6 +9,7 @@ const historyRouter = require('./history');
 const vehiclesRouter = require('./vehicles');
 const categoryRouter = require('./category');
 const cityRouter = require('./city');
+const favRouter = require('./favourite');
 
 router.use('/auth', authRouter);
 router.use('/home', homeRouter);
@@ -18,6 +19,7 @@ router.use('/history', historyRouter);
 router.use('/vehicles', vehiclesRouter);
 router.use('/category', categoryRouter);
 router.use('/city', cityRouter);
+router.use('/favourite', favRouter);
 
 router.get('/', (_req, res) => {
   res.redirect('home');
