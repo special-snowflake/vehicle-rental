@@ -8,3 +8,5 @@ const middleFav = require('../controllers/favourite');
 favRouter.get('/', auth.authorizeCustomer, middleFav.getFavourite);
 favRouter.post('/', auth.authorizeCustomer, middleFav.addFovourite);
 favRouter.delete('/:id', auth.authorizeCustomer, middleFav.deleteFavourite);
+
+module.exports = favRouter;

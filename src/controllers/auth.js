@@ -13,7 +13,9 @@ const register = (req, res) => {
       resHelper.error(res, 500, {errMsg: 'Register failed.', err});
     });
 };
-
+const checkToken = (req, res) => {
+  resHelper.success(res, 200, {msg: 'Token is valid', result: null});
+};
 const login = (req, res) => {
   const {body} = req;
   authModel
@@ -41,4 +43,4 @@ const logout = (req, res) => {
     });
 };
 
-module.exports = {register, login, logout};
+module.exports = {register, login, logout, checkToken};
