@@ -28,7 +28,7 @@ const getFavourite = (req, res) => {
   } = req;
   favModel
     .getFavourite(user_id)
-    .then(({status, result}) => {
+    .then(({status, data}) => {
       if (status == 204) {
         sendResponse.success(res, status, {
           msg: 'Favourite is empty.',
@@ -37,7 +37,7 @@ const getFavourite = (req, res) => {
       }
       sendResponse.success(res, status, {
         msg: 'Favourite',
-        data: result,
+        data,
       });
     })
     .catch((err) =>
