@@ -7,7 +7,7 @@ const addFavourite = (req, res) => {
     body: {vehicle_id},
   } = req;
   favModel
-    .addFavourite(id, vehicle_id)
+    .addFavourite(vehicle_id, id)
     .then(({status, result}) => {
       return sendResponse.success(res, status, result);
     })

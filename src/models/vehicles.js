@@ -206,15 +206,6 @@ const searchVehicles = (query) => {
       if (nPage == null) {
         nextPage = null;
       } else {
-        // nextPage +=
-        //   '&orderBy=' +
-        //   orderByPage +
-        //   '&sort=' +
-        //   sortPage +
-        //   // '&limit=' +
-        //   // limit +
-        //   '&page=' +
-        //   nPage;
         if (typeof orderByPage !== 'undefined') {
           nextPage += '&orderBy=' + orderByPage;
         }
@@ -226,15 +217,6 @@ const searchVehicles = (query) => {
       if (pPage == null) {
         previousPage = null;
       } else {
-        // previousPage +=
-        //   '&orderBy=' +
-        //   orderByPage +
-        //   '&sort=' +
-        //   sortPage +
-        //   // '&limit=' +
-        //   // limit +
-        //   '&page=' +
-        //   pPage;
         if (typeof orderByPage !== 'undefined') {
           previousPage += '&orderBy=' + orderByPage;
         }
