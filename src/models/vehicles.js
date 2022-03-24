@@ -270,7 +270,7 @@ const updateVehicle = (req) => {
     db.query(sqlUpdate, [body, id], (err, _result) => {
       if (err) {
         if (images.length !== 0) {
-          deleteImages(images, reject);
+          deleteImages(images);
         }
         return reject(err);
       }
@@ -285,7 +285,7 @@ const updateVehicle = (req) => {
       db.query(sqlDeleteImages, [id, totalImages], (err, result) => {
         if (err) {
           if (images.length !== 0) {
-            deleteImages(images, reject);
+            deleteImages(images);
           }
           return reject(err);
         }
@@ -305,7 +305,7 @@ const updateVehicle = (req) => {
         db.query(queryImages, prepareImages, (err, result) => {
           if (err) {
             if (images.length !== 0) {
-              deleteImages(images, reject);
+              deleteImages(images);
             }
             return reject(err);
           }
@@ -344,7 +344,7 @@ const addNewVehicle = (req) => {
     db.query(sqlQuery, body, (err, result) => {
       if (err) {
         console.log(err);
-        deleteImages(images, reject);
+        deleteImages(images);
         return reject(err);
       }
       const id = result.insertId;
@@ -364,7 +364,7 @@ const addNewVehicle = (req) => {
       ${values}`;
       db.query(queryImages, prepareImages, (err, result) => {
         if (err) {
-          deleteImages(images, reject);
+          deleteImages(images);
           return reject(err);
         }
         // const id = result.insertId;
@@ -401,7 +401,7 @@ const deleteVehicle = (id) => {
           if (images.length !== 0) {
             images.forEach((element) => {
               console.log('[db]element:', element);
-              deleteImages(images, reject);
+              deleteImages(images);
             });
           }
           return resolve({
@@ -432,11 +432,12 @@ const checkInputCity = (city) => {
   });
 };
 
-const deleteImages = (images, reject) => {
+const deleteImages = (images) => {
   images.forEach((element) => {
     fs.unlink(`media/${element}`, (err) => {
       if (err) {
-        return reject(err);
+        console.log(err);
+        // return reject(err);
       }
     });
   });

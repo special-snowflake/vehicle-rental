@@ -31,6 +31,47 @@ const login = (req, res) => {
     });
 };
 
+const getOTP = (req, res) => {
+  authModel
+    .getOTP(req.body)
+    .then(({status, result}) => {
+      resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      console.log('controller', err);
+      resHelper.error(res, err.status, {
+        errMsg: err.err.msg,
+      });
+    });
+};
+
+const checkOTP = (req, res) => {
+  authModel
+    .checkOTP(req.body)
+    .then(({status, result}) => {
+      resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      console.log('controller', err);
+      resHelper.error(res, err.status, {
+        errMsg: err.err.msg,
+      });
+    });
+};
+const resetPassword = (req, res) => {
+  authModel
+    .resetPassword(req.body)
+    .then(({status, result}) => {
+      resHelper.success(res, status, result);
+    })
+    .catch((err) => {
+      console.log('controller', err);
+      resHelper.error(res, err.status, {
+        errMsg: err.err.msg,
+      });
+    });
+};
+
 const logout = (req, res) => {
   const token = req.header('x-authorized-token');
   authModel
@@ -43,4 +84,12 @@ const logout = (req, res) => {
     });
 };
 
-module.exports = {register, login, logout, checkToken};
+module.exports = {
+  register,
+  login,
+  logout,
+  checkToken,
+  getOTP,
+  checkOTP,
+  resetPassword,
+};

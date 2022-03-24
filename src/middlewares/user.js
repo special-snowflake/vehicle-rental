@@ -71,11 +71,12 @@ const getDataUserForUpdate = (req, res, next) => {
       console.log('old photo', oldPhoto);
       if (oldPhoto) {
         fs.unlink(`media/${oldPhoto}`, (err) => {
-          if (err) {
-            return res
-              .status(500)
-              .json({errMsg: 'Error occured while deleting photo.'});
-          }
+          console.log(err);
+          // if (err) {
+          //   return res
+          //     .status(500)
+          //     .json({errMsg: 'Error occured while deleting photo.'});
+          // }
         });
       }
       bodyUpdate[0] = {
@@ -106,9 +107,9 @@ const validateRegister = (req, res, next) => {
   console.log(req);
   const isBodyValid =
     registerBody.filter((property) => !bodyProperty.includes(property))
-      .length == 0 ?
-      true :
-      false;
+      .length == 0
+      ? true
+      : false;
   console.log(isBodyValid);
   if (!isBodyValid) return res.status(400).json({msg: 'Invalid Body'});
   next();

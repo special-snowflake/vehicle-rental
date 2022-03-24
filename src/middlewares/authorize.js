@@ -14,13 +14,15 @@ const authorizeCustomer = (req, res, next) => {
     }
     if (result.length !== 0) {
       return resHelper.success(res, 403, {
-        msg: 'You need to login to perform this action.',
+        errMsg: 'You need to login to perform this action.',
+        err_code: 'INVALID_TOKEN',
       });
     }
     jwt.verify(token, process.env.SECRET_KEY, jwtOptions, (err, payload) => {
       if (err) {
         return resHelper.error(res, 403, {
           errMsg: 'You need to login to perform this action.',
+          err_code: 'INVALID_TOKEN',
         });
       }
       // console.log(payload);
@@ -49,12 +51,14 @@ const authorizeAdmin = (req, res, next) => {
     if (result.length !== 0) {
       return resHelper.error(res, 403, {
         errMsg: 'You need to login to perform this action.',
+        err_code: 'INVALID_TOKEN',
       });
     }
     jwt.verify(token, process.env.SECRET_KEY, jwtOptions, (err, payload) => {
       if (err) {
         return resHelper.error(res, 403, {
           errMsg: 'You need to login to perform this action.',
+          err_code: 'INVALID_TOKEN',
         });
       }
       const {roles} = payload;
@@ -82,6 +86,7 @@ const authorizeOwner = (req, res, next) => {
     if (result.length !== 0) {
       return resHelper.error(res, 403, {
         errMsg: 'You need to login to perform this action.',
+        err_code: 'INVALID_TOKEN',
       });
     }
     jwt.verify(token, process.env.SECRET_KEY, jwtOptions, (err, payload) => {
@@ -90,6 +95,7 @@ const authorizeOwner = (req, res, next) => {
         console.log('error verify', err);
         return resHelper.error(res, 403, {
           errMsg: 'You need to login to perform this action.',
+          err_code: 'INVALID_TOKEN',
         });
       }
       const {roles} = payload;
@@ -122,6 +128,7 @@ const authorizeAllUser = (req, res, next) => {
       console.log('failed auth middleware');
       return resHelper.success(res, 403, {
         errMsg: 'You need to login to perform this action.',
+        err_code: 'INVALID_TOKEN',
       });
     }
     jwt.verify(token, process.env.SECRET_KEY, jwtOptions, (err, payload) => {
@@ -129,6 +136,7 @@ const authorizeAllUser = (req, res, next) => {
       if (err) {
         return resHelper.error(res, 403, {
           errMsg: 'You need to login to perform this action.',
+          err_code: 'INVALID_TOKEN',
         });
       }
       req.payload = payload;

@@ -2,7 +2,7 @@ const db = require('../config/db');
 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-
+const {sendForgotPass} = require('../helpers/sendOtp');
 const register = (body) => {
   return new Promise((resolve, reject) => {
     const firstName = body.name;
@@ -129,4 +129,135 @@ const logout = (token) => {
   });
 };
 
-module.exports = {register, login, logout};
+const getOTP = (body) => {
+  return new Promise((resolve, reject) => {
+    const {email} = body;
+    const sqlQuery = `SELECT * FROM users WHERE email = ?`;
+
+    db.query(sqlQuery, [email], (err, result) => {
+      if (err) {
+        console.log(err);
+        const error = {
+          status: 500,
+          err: {msg: 'Something went wrong', data: null},
+        };
+        return reject(error);
+      }
+      if (result.length == 0) {
+        const error = {
+          status: 401,
+          err: {msg: 'Email is invalid', data: null},
+        };
+        return reject(error);
+      }
+      const name = result[0].full_name;
+      const otp = Math.ceil(Math.random() * 1000 * 1000);
+      const sqlQuery = `UPDATE user_access SET otp = ? 
+      WHERE user_id = (SELECT id FROM users WHERE email = ?)`;
+
+      db.query(sqlQuery, [otp, email], (err) => {
+        if (err) {
+          const error = {
+            status: 500,
+            err: {msg: 'Something went wrong', data: null},
+            // err,
+          };
+          return reject(error);
+        }
+        sendForgotPass(email, {name: name, otp});
+        const data = {
+          email: email,
+        };
+        resolve({status: 200, result: {msg: 'Please check your email', data}});
+      });
+    });
+  });
+};
+
+const checkOTP = (body) => {
+  return new Promise((resolve, reject) => {
+    const {email, otp} = body;
+    const sqlQuery = `SELECT u.email, ua.otp 
+    FROM users u JOIN user_access ua ON u.id = ua.user_id 
+    WHERE email = ? AND otp = ?`;
+    db.query(sqlQuery, [email, otp], (err, result) => {
+      if (err) {
+        const error = {status: 500, err};
+        return reject(error);
+      }
+      if (result.length === 0) {
+        const error = {status: 401, err: {msg: 'Invalid OTP'}};
+        return reject(error);
+      }
+      const data = {
+        email: email,
+      };
+      resolve({status: 200, result: {msg: 'OTP is valid', data}});
+    });
+  });
+};
+
+const resetPassword = (body) => {
+  return new Promise((resolve, reject) => {
+    const {email, password, otp} = body;
+    console.log(body);
+    const sqlQuery = `SELECT * FROM users u 
+    JOIN user_access ua ON u.id = ua.user_id
+    WHERE u.email = ? AND ua.otp = ?`;
+
+    db.query(sqlQuery, [email, otp], (err) => {
+      if (err) {
+        console.log(err);
+        const error = {
+          status: 500,
+          err: {msg: 'Something went wrong', data: null},
+        };
+        return reject(error);
+      }
+      bcrypt
+        .hash(password, 10)
+        .then((hashedPassword) => {
+          const sqlUpdatePass = `UPDATE user_access SET password = ?
+          WHERE otp = ? AND user_id = 
+          (SELECT id FROM users WHERE  email = ?)`;
+          db.query(sqlUpdatePass, [hashedPassword, otp, email], (err) => {
+            if (err) {
+              console.log(err);
+              const error = {
+                status: 500,
+                err: {msg: 'Something went wrong', data: null},
+              };
+              return reject(error);
+            }
+            const sqlRemoveOtp = `UPDATE user_access SET otp = null 
+            WHERE otp = ?`;
+            db.query(sqlRemoveOtp, [otp], (err, result) => {
+              if (err) {
+                console.log(err);
+                const error = {
+                  status: 500,
+                  err: {msg: 'Something went wrong', data: null},
+                };
+                return reject(error);
+              }
+              return resolve({
+                status: 200,
+                result: {
+                  msg: 'Reset password success',
+                  data: {
+                    email,
+                  },
+                },
+              });
+            });
+          });
+        })
+        .catch((err) => {
+          const error = {status: 500, err};
+          reject(error);
+        });
+    });
+  });
+};
+
+module.exports = {register, login, logout, getOTP, checkOTP, resetPassword};
